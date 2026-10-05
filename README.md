@@ -1,0 +1,120 @@
+<p align="center">
+  <img src="docs/icon-512.png" width="140" alt="Ikonica igrice">
+</p>
+
+<h1 align="center">Пут до Краљеве тврђаве</h1>
+
+<p align="center">
+  Platformska igrica za jednog ili dva igrača. Mali vitezovi <b>Vojin</b> i <b>Vukašin</b> prolaze 10 nivoa,
+  skupljaju novčiće, skaču na bube i stižu do Kraljeve tvrđave.
+</p>
+
+<p align="center">
+  <a href="https://github.com/srdjan89np/put-do-tvrdjave/releases/latest/download/put-do-tvrdjave.apk"><b>📱 Preuzmi APK za Android</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://srdjan89np.github.io/put-do-tvrdjave/"><b>🎮 Igraj u pregledaču</b></a>
+</p>
+
+---
+
+## Kako se igra
+
+- **1 igrač:** biraš Vojina ili Vukašina i igraš sam.
+- **2 igrača:** igrate jedan po jedan. Kad jedan izgubi život, na redu je drugi.
+- Svaki igrač ima **3 života**. Na sredini svakog nivoa je kontrolna tačka.
+- Na kraju nivoa vitez ulazi u dvorac i svira pobednička melodija.
+- Posle 10. nivoa ide završna scena sa kraljem i vatrometom. Pobeđuje igrač sa više poena.
+
+### Kontrole
+
+| | Telefon | Računar |
+|---|---|---|
+| Kretanje | ◀ ▶ | ← → ili A D |
+| Skok | СКОК | ↑, razmak, W ili Z |
+| Pucanje | ПУЦАЈ | X, F ili Shift |
+| Pauza | ❚❚ gore | P ili Esc |
+
+Na Android telefonu dugme **nazad** pauzira igru, a drugi pritisak izlazi iz aplikacije.
+
+### Pokloni
+
+Pokloni se dobijaju redom, dok vitez ne izgubi život:
+
+1. **Praćka:** gađa kamenčićima i obara sve neprijatelje, i ježa.
+2. **Super praćka:** tri zlatne zvezde odjednom, koje prolaze kroz neprijatelje.
+3. **Oklop** (u paketiću): jedan udarac ne oduzima život.
+4. **Konj** (u paketiću): brže trčanje, viši skok, može da se skoči i na ježa. Kad vitez udari nešto, padne sa konja, ali ne gubi život.
+
+Kad izgubi život, vitez gubi sve poklone.
+
+### Nivoi
+
+1. Зелена ливада
+2. Кристална пећина
+3. Изнад облака
+4. Пешчане дине
+5. Ледена планина (klizav led)
+6. Ватрена тврђава
+7. Ноћна шума
+8. Дубока пећина
+9. Олуја у облацима
+10. Краљева тврђава
+
+Neprijatelji su bubamare, ježevi (na njih ne sme da se skoči) i mali zmajevi. Prepreke su provalije, lava, šiljci, kružne testere, opruge i pokretne platforme.
+
+## Instalacija na Android
+
+1. Na telefonu otvori link **Preuzmi APK** iznad (ili stranicu [Releases](https://github.com/srdjan89np/put-do-tvrdjave/releases)).
+2. Otvori preuzeti fajl `put-do-tvrdjave.apk`.
+3. Ako telefon pita, dozvoli instaliranje aplikacija iz ovog izvora.
+4. Igrica se zove **„Пут до тврђаве“** i radi i bez interneta.
+
+Nova verzija se instalira preko stare, rezultati se ne čuvaju između igara.
+
+## Kako je napravljena
+
+Cela igrica je jedan fajl, [`index.html`](index.html): HTML, CSS i JavaScript bez spoljnih biblioteka. Crta se na `<canvas>`, a zvuk i muzika se prave u pregledaču (Web Audio). Melodije na kraju nivoa su klasične i slobodne za korišćenje: Betovenova „Oda radosti“, Mocartova „Mala noćna muzika“ i „Turski marš“.
+
+```
+index.html                  igrica
+icon.png                    ikonica
+android/                    Android aplikacija (WebView koji otvara index.html)
+scripts/fetch-fonts.sh      preuzima fontove Rubik i Nunito (ćirilica) za rad bez interneta
+scripts/make-icons.py       crta ikonicu u svim veličinama
+.github/workflows/          automatsko pravljenje APK-a i objava na GitHub Pages
+```
+
+### Automatsko pravljenje
+
+Na svaki `push` na granu `main` GitHub Actions:
+
+- pravi novi **APK** i objavljuje ga u [Releases](https://github.com/srdjan89np/put-do-tvrdjave/releases) (`android.yml`);
+- objavljuje igricu na **GitHub Pages** (`pages.yml`).
+
+### Lokalno pokretanje
+
+Otvori `index.html` u pregledaču. Za fontove bez interneta prvo pokreni:
+
+```bash
+bash scripts/fetch-fonts.sh fonts
+```
+
+APK lokalno (potrebni su Android SDK i Java 17):
+
+```bash
+mkdir -p android/app/src/main/assets
+cp index.html icon.png android/app/src/main/assets/
+bash scripts/fetch-fonts.sh android/app/src/main/assets/fonts
+cd android && gradle assembleRelease
+```
+
+### Podešavanja za testiranje
+
+Na vrhu skripte u `index.html`:
+
+- `START_LEVEL`: nivo od kog igra kreće (`0` je prvi nivo).
+- `TEST_HORSE`: `true` znači da igrač kreće na konju, sa praćkom i oklopom.
+
+### Potpis aplikacije
+
+APK se potpisuje stalnim test ključem `android/app/debug.keystore`, da bi nove verzije mogle da se instaliraju preko starih. Za sopstveni ključ dodaj u **Settings → Secrets and variables → Actions** tajne `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` i `ANDROID_KEY_PASSWORD`. Posle promene ključa staru aplikaciju treba jednom obrisati sa telefona.

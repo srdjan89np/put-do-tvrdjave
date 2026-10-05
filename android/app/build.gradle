@@ -1,0 +1,51 @@
+plugins {
+    id 'com.android.application'
+}
+
+def ciVersionCode = (project.findProperty('versionCode') ?: '1') as Integer
+def ciVersionName = (project.findProperty('versionName') ?: '1.0') as String
+def ks = System.getenv('ANDROID_KEYSTORE_FILE')
+
+android {
+    namespace 'rs.vojinvukasin.tvrdjava'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'rs.vojinvukasin.tvrdjava'
+        minSdk 21
+        targetSdk 34
+        versionCode ciVersionCode
+        versionName ciVersionName
+    }
+
+    signingConfigs {
+        // Stalni test ključ (u repozitorijumu) da bi nove verzije mogle da se instaliraju preko starih.
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+        release {
+            if (ks) {
+                storeFile file(ks)
+                storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            // Bez sopstvenog ključa u GitHub tajnama koristi se stalni test ključ iz repozitorijuma.
+            signingConfig ks ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
