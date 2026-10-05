@@ -5,6 +5,7 @@ android/app/build/
 android/local.properties
 android/app/src/main/assets/
 *.apk
+!apk/put-do-tvrdjave.apk
 *.jks
 *.keystore
 !android/app/debug.keystore

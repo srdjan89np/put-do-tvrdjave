@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/srdjan89np/put-do-tvrdjave/releases/latest/download/put-do-tvrdjave.apk"><b>📱 Preuzmi APK za Android</b></a>
+  <a href="apk/put-do-tvrdjave.apk?raw=1"><b>📱 Preuzmi APK za Android</b></a>
   &nbsp;·&nbsp;
   <a href="https://srdjan89np.github.io/put-do-tvrdjave/"><b>🎮 Igraj u pregledaču</b></a>
 </p>
@@ -64,7 +64,7 @@ Neprijatelji su bubamare, ježevi (na njih ne sme da se skoči) i mali zmajevi. 
 
 ## Instalacija na Android
 
-1. Na telefonu otvori link **Preuzmi APK** iznad (ili stranicu [Releases](https://github.com/srdjan89np/put-do-tvrdjave/releases)).
+1. Na telefonu otvori link **Preuzmi APK** iznad. APK je u folderu [`apk/`](apk/), a novije verzije se pojavljuju i u [Releases](https://github.com/srdjan89np/put-do-tvrdjave/releases) kad GitHub Actions radi.
 2. Otvori preuzeti fajl `put-do-tvrdjave.apk`.
 3. Ako telefon pita, dozvoli instaliranje aplikacija iz ovog izvora.
 4. Igrica se zove **„Пут до тврђаве“** i radi i bez interneta.
@@ -77,6 +77,7 @@ Cela igrica je jedan fajl, [`index.html`](index.html): HTML, CSS i JavaScript be
 
 ```
 index.html                  igrica
+apk/put-do-tvrdjave.apk     gotov Android APK
 icon.png                    ikonica
 android/                    Android aplikacija (WebView koji otvara index.html)
 scripts/fetch-fonts.sh      preuzima fontove Rubik i Nunito (ćirilica) za rad bez interneta
