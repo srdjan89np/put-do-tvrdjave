@@ -80,6 +80,16 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
 .alt{background:none;border:0;color:var(--muted);font:800 14px var(--body);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:4px 8px}
 .alt:focus-visible{outline:3px solid var(--gold);border-radius:6px}
 .pl.gone{visibility:hidden}
+.hs{list-style:none;margin:0;padding:0;width:100%;display:grid;gap:4px}
+.hs li{display:grid;grid-template-columns:2.2em minmax(0,1fr) auto;gap:8px;align-items:center;background:var(--panel);border-radius:9px;padding:6px 10px;font-weight:800;font-variant-numeric:tabular-nums;text-align:left;border:2px solid transparent}
+.hs li .rk{color:var(--muted);font-size:14px}
+.hs li:nth-child(1) .rk{color:var(--gold)}
+.hs li .nm{min-width:0;display:flex;flex-direction:column;line-height:1.15}
+.hs li .nm b{font-family:var(--display);font-weight:800;font-size:16px;color:var(--c);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hs li .nm small{color:var(--muted);font-size:11px;font-weight:800}
+.hs li .sc{font-size:17px}
+.hs li.new{border-color:var(--gold);background:var(--panel-2)}
+.hs-title{margin:2px 0 -2px;font-size:12px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
 
 /* Touch pad */
 .pad{display:flex;justify-content:space-between;align-items:center;gap:12px;touch-action:none}
@@ -130,6 +140,8 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
       <h2 id="cTitle"></h2>
       <p class="info" id="cInfo"></p>
       <div class="rows" id="cRows"></div>
+      <p class="hs-title" id="cHsT" hidden></p>
+      <ol class="hs" id="cHs" hidden></ol>
       <div class="opts" id="cOpts"></div>
       <p class="hint" id="cHint"></p>
       <button class="go" id="cGo">Крени!</button>
@@ -706,12 +718,41 @@ function gameOver(){
   if(ps.length===1){const p=ps[0];title=p.done?'Pobeda, '+p.c.voc+'!':'Kraj igre';color=p.c.jacket;heroes=[p.c];}
   else if(winners.length>1){title='Nerešeno!';color='#ffc62b';heroes=winners.map(p=>p.c);}
   else{title='Pobednik: '+winners[0].c.name+'!';color=winners[0].c.jacket;heroes=[winners[0].c];}
+  const ids=addScores(ps.map(p=>({h:p.idx,s:p.score,l:p.done?11:p.level+1})));
+  ps.forEach(p=>{const e=getScores().find(x=>ids.includes(x.id)&&x.h===p.idx&&x.s===p.score);
+    const r=rows.find(r=>r.c===p.c);if(e&&r){const rk=scoreRank(e.id);r.line=rk===1?'Novi rekord!':rk+'. mesto na tabeli';}});
   showCard({kick:ps.length===1&&ps[0].done?'Svih 10 nivoa pređeno':'Kraj igre',title,color,heroes,rows,
+    table:getScores(),tableNew:ids,tableTitle:'Najbolji rezultati',
     btn:'Igraj ponovo',go:()=>startGame(setup),alt:{label:'Glavni meni',fn:()=>showTitle()}});
+  if(ids.some(id=>scoreRank(id)===1))sfx('life');
 }
 const TEST_HORSE=false; // true = igrač kreće na konju (za testiranje)
 const START_LEVEL=0; // nivo od kog igra kreće (0 = prvi nivo)
 let setup={order:[0,1]};
+/* ---------- Najbolji rezultati (10 najboljih, čuvaju se na uređaju) ---------- */
+const HS_KEY='ptv-najbolji-v1';
+function loadScores(){try{const a=JSON.parse(localStorage.getItem(HS_KEY)||'[]');return Array.isArray(a)?a.filter(e=>e&&typeof e.s==='number'):[];}catch(e){return [];}}
+function saveScores(a){try{localStorage.setItem(HS_KEY,JSON.stringify(a));}catch(e){}}
+let hsMem=null;
+function getScores(){if(!hsMem)hsMem=loadScores();return hsMem;}
+function addScores(list){
+  // list: [{h,s,l}] -> vraća id-jeve unetih rezultata koji su ušli u 10 najboljih
+  const all=getScores().slice();const d=new Date();
+  const date=String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear()+'.';
+  const ids=[];
+  for(const e of list){if(e.s<=0)continue;const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);ids.push(id);all.push({id,h:e.h,s:e.s,l:e.l,d:date});}
+  all.sort((a,b)=>b.s-a.s);  // stabilno: stariji rezultat ostaje ispred kod istog broja poena
+  hsMem=all.slice(0,10);saveScores(hsMem);
+  return ids.filter(id=>hsMem.some(x=>x.id===id));
+}
+function scoreRank(id){return getScores().findIndex(x=>x.id===id)+1;}
+function bestLine(){const a=getScores();if(!a.length)return '';const b=a[0];return 'Rekord: '+b.s+' ('+HEROES[b.h].name+')';}
+function showScores(back){
+  const a=getScores();
+  showCard({kick:'Tabela',title:'Najbolji rezultati',color:'#ffc62b',
+    info:a.length?'':'Još nema rezultata. Odigraj prvu igru!',
+    table:a,btn:'Nazad',go:back||(()=>showTitle())});
+}
 function startGame(s){
   setup=s;
   players=s.order.map(i=>({c:HEROES[i],idx:i,lives:3,score:0,coins:0,level:START_LEVEL,cp:null,done:false,weapon:TEST_HORSE?2:0,armor:TEST_HORSE,horse:TEST_HORSE}));
@@ -725,7 +766,7 @@ function showTitle(){
     options:[
       {label:'1 igrač',sub:'Igraš sam, biraš junaka',fn:()=>chooseHero(1)},
       {label:'2 igrača',sub:'Jedan po jedan: kad jedan izgubi život, igra drugi',fn:()=>chooseHero(2)}
-    ]});
+    ],record:bestLine(),alt:{label:'Najbolji rezultati',fn:()=>showScores()}});
 }
 function chooseHero(mode){
   showCard({kick:mode===1?'1 igrač':'2 igrača',title:mode===1?'Izaberi junaka':'Ko igra prvi?',color:'#ffc62b',
@@ -752,6 +793,15 @@ function showCard(o){
   const hint=document.getElementById('cHint');hint.textContent=o.hint||'';hint.hidden=!o.hint;
   const pors=document.getElementById('cPors');pors.innerHTML='';pors.hidden=!(o.heroes&&o.heroes.length);
   (o.heroes||[]).forEach(c=>{const pc=document.createElement('canvas');pc.width=112;pc.height=128;const g=pc.getContext('2d');g.scale(3,3);drawHero(g,c,7,6,1,0,false,false);pors.appendChild(pc);});
+  if(o.record){info.textContent=(o.info?o.info+' ':'');const rb=document.createElement('b');rb.style.color='var(--gold)';rb.style.whiteSpace='nowrap';rb.textContent=cyr(o.record);info.appendChild(rb);}
+  const hs=document.getElementById('cHs'),hsT=document.getElementById('cHsT');hs.innerHTML='';
+  const tbl=o.table&&o.table.length?o.table:null;hs.hidden=!tbl;hsT.hidden=!(tbl&&o.tableTitle);hsT.textContent=cyr(o.tableTitle||'');
+  (tbl||[]).forEach((e,i)=>{const li=document.createElement('li');const hc=HEROES[e.h]||HEROES[0];li.style.setProperty('--c',hc.jacket);
+    if(o.tableNew&&o.tableNew.includes(e.id))li.className='new';
+    li.innerHTML='<span class="rk"></span><span class="nm"><b></b><small></small></span><span class="sc"></span>';
+    li.querySelector('.rk').textContent=(i+1)+'.';li.querySelector('b').textContent=cyr(hc.name);
+    li.querySelector('small').textContent=cyr((e.l>LEVELS.length?'Prešao sve nivoe ★':'Nivo '+e.l)+' · '+e.d);
+    li.querySelector('.sc').textContent=e.s;hs.appendChild(li);});
   const rows=document.getElementById('cRows');rows.innerHTML='';rows.hidden=!o.rows;
   (o.rows||[]).forEach(r=>{const d=document.createElement('div');d.className='r';d.style.setProperty('--c',r.c.jacket);
     d.innerHTML='<b></b><span></span><em></em>';d.querySelector('b').textContent=cyr(r.c.name);d.querySelector('span').textContent=r.line;d.querySelector('em').textContent=r.score;rows.appendChild(d);});

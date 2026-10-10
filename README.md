@@ -23,6 +23,7 @@
 - **2 igrača:** igrate jedan po jedan. Kad jedan izgubi život, na redu je drugi.
 - Svaki igrač ima **3 života**. Na sredini svakog nivoa je kontrolna tačka.
 - Na kraju nivoa vitez ulazi u dvorac i svira pobednička melodija.
+- **Najbolji rezultati:** igra pamti 10 najboljih rezultata na uređaju. Tabela se vidi na kraju igre i u glavnom meniju, a rekord piše na početnom ekranu.
 - Posle 10. nivoa ide završna scena sa kraljem i vatrometom. Pobeđuje igrač sa više poena.
 
 ### Kontrole
