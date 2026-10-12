@@ -111,8 +111,9 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
 @media (max-width:400px){.pad button{width:62px}.pad .jump{width:86px}.pad .shoot{width:70px;font-size:15px}}
 @media (hover:hover) and (pointer:fine){.pad{display:none}}
 @media (max-height:520px) and (orientation:landscape){
-  #app{position:relative;gap:0;padding-block:0;padding-inline:0;max-width:none}
-  .hud{position:absolute;top:4px;left:8px;right:8px;z-index:3;pointer-events:none;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
+  #app{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:minmax(0,1fr);gap:0 10px;padding-block:6px;padding-inline:max(10px,env(safe-area-inset-left,0px)) max(10px,env(safe-area-inset-right,0px));max-width:none}
+  #stage{grid-row:1;grid-column:2;height:100%}
+  .hud{grid-row:1;grid-column:2;align-self:start;margin:4px 6px 0;z-index:3;pointer-events:none;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
   .hud .mid{flex-direction:row;align-items:flex-start;justify-content:center}
   .hud .mid button{pointer-events:auto;opacity:.85}
   .pl{padding:2px 8px;background:rgba(30,37,72,.7);max-width:260px}
@@ -132,11 +133,16 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
   .hs{grid-template-columns:1fr 1fr;gap:4px 8px}
   .hs li{padding:4px 8px}
   .modal .pad{visibility:hidden}
-  .pad{position:absolute;left:16px;right:16px;bottom:8px;pointer-events:none}
-  .pad button{pointer-events:auto;opacity:.75;height:56px;width:64px}
-  .pad .jump{width:96px}
-  .pad .shoot.dim{opacity:.3}
+  .pad{display:contents}
+  .pad .dirs{grid-row:1;align-self:end;display:flex;flex-direction:column;align-items:stretch;gap:10px;padding-bottom:6px}
+  .pad .dirs:first-child{grid-column:1;flex-direction:row;align-items:flex-end}
+  .pad .dirs:last-child{grid-column:3}
+  .pad button{height:58px;width:62px}
+  .pad .jump{width:100px;height:70px}
+  .pad .shoot{width:100px;height:48px;font-size:16px}
+  .pad .shoot.dim{opacity:.35}
 }
+@media (hover:hover) and (pointer:fine){.pad,.pad .dirs{display:none!important}}
 @media (prefers-reduced-motion:reduce){.pl{transition:none}}
 </style>
 </head>
@@ -898,7 +904,7 @@ function updHud(){
 /* ---------- Resize ---------- */
 function resize(){
   const r=stage.getBoundingClientRect();const aw=Math.max(100,r.width),ah=Math.max(100,r.height);
-  VW=Math.max(11*T,Math.min(40*T,Math.round(H*aw/ah)));
+  VW=Math.max(9*T,Math.min(40*T,Math.round(H*aw/ah)));
   scale=Math.min(aw/VW,ah/H);dpr=Math.min(2,window.devicePixelRatio||1);
   cv.style.width=Math.floor(VW*scale)+'px';cv.style.height=Math.floor(H*scale)+'px';
   cv.width=Math.round(VW*scale*dpr);cv.height=Math.round(H*scale*dpr);
