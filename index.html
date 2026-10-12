@@ -70,7 +70,12 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
 .rows .r em{font-style:normal;font-size:18px}
 .card button.go{margin-top:4px;border:0;border-radius:14px;padding:12px 30px;background:var(--gold);color:#2a1d00;font:800 22px var(--display);letter-spacing:.5px;cursor:pointer;box-shadow:0 4px 0 #b58300}
 .card button.go:active{transform:translateY(3px);box-shadow:0 1px 0 #b58300}
-.card{max-height:calc(100% - 12px);overflow-y:auto}
+.card{max-height:calc(100% - 12px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.card>*{flex-shrink:0}
+.card{z-index:5;background:#151b38}
+.acts{position:sticky;bottom:-18px;margin:0 -20px -18px;padding:8px 20px 12px;width:calc(100% + 40px);display:flex;flex-direction:column;align-items:center;gap:2px;background:#151b38;border-radius:0 0 15px 15px;box-shadow:0 -10px 14px -6px #151b38;z-index:1}
+.acts:has(> :not([hidden])){}
+.acts .go:not([hidden])+.alt{margin-top:2px}
 .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
 .opt{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border-radius:14px;border:3px solid var(--panel-2);background:var(--panel);color:var(--ink);cursor:pointer;font-family:var(--body);min-width:0}
 .opt:hover,.opt:focus-visible{border-color:var(--c,var(--gold));outline:none;background:var(--panel-2)}
@@ -89,6 +94,7 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
 .hs li .nm small{color:var(--muted);font-size:11px;font-weight:800}
 .hs li .sc{font-size:17px}
 .hs li.new{border-color:var(--gold);background:var(--panel-2)}
+.acts:not(:has(:not([hidden]))){display:none}
 .hs-title{margin:2px 0 -2px;font-size:12px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
 
 /* Touch pad */
@@ -105,8 +111,27 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
 @media (max-width:400px){.pad button{width:62px}.pad .jump{width:86px}.pad .shoot{width:70px;font-size:15px}}
 @media (hover:hover) and (pointer:fine){.pad{display:none}}
 @media (max-height:520px) and (orientation:landscape){
-  #app{gap:4px;padding-block:4px}
-  .pl{padding:3px 8px}.pl b{font-size:15px}
+  #app{position:relative;gap:0;padding-block:0;padding-inline:0;max-width:none}
+  .hud{position:absolute;top:4px;left:8px;right:8px;z-index:3;pointer-events:none;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
+  .hud .mid{flex-direction:row;align-items:flex-start;justify-content:center}
+  .hud .mid button{pointer-events:auto;opacity:.85}
+  .pl{padding:2px 8px;background:rgba(30,37,72,.7);max-width:260px}
+  #hud1{justify-self:end}
+  .pl b{font-size:14px}.pl .stats{font-size:11px}
+  #c{border-radius:0;box-shadow:none}
+  .card{padding:10px 16px;gap:6px;max-height:calc(100% - 10px);max-width:min(94%,560px)}
+  .acts{bottom:-10px;margin:0 -16px -10px;padding:6px 16px 8px;width:calc(100% + 32px)}
+  .card h2{font-size:24px}
+  .card .info{font-size:13px;line-height:1.35;max-width:52ch}
+  .pors canvas{width:38px;height:44px}
+  .opt{padding:6px 8px;flex-direction:row;justify-content:center;gap:8px;text-align:left}
+  .opt canvas{width:34px;height:39px}
+  .opt b{font-size:18px}
+  .opts{gap:8px}
+  .card button.go{padding:8px 26px;font-size:19px}
+  .hs{grid-template-columns:1fr 1fr;gap:4px 8px}
+  .hs li{padding:4px 8px}
+  .modal .pad{visibility:hidden}
   .pad{position:absolute;left:16px;right:16px;bottom:8px;pointer-events:none}
   .pad button{pointer-events:auto;opacity:.75;height:56px;width:64px}
   .pad .jump{width:96px}
@@ -144,8 +169,10 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
       <ol class="hs" id="cHs" hidden></ol>
       <div class="opts" id="cOpts"></div>
       <p class="hint" id="cHint"></p>
-      <button class="go" id="cGo">Крени!</button>
-      <button class="alt" id="cAlt" hidden></button>
+      <div class="acts">
+        <button class="go" id="cGo">Крени!</button>
+        <button class="alt" id="cAlt" hidden></button>
+      </div>
     </div>
   </div>
 
@@ -813,13 +840,13 @@ function showCard(o){
     b.addEventListener('click',()=>{initAudio();op.fn();});opts.appendChild(b);});
   goBtn.hidden=!o.btn;goBtn.textContent=o.btn||'';goFn=o.go||null;
   const alt=document.getElementById('cAlt');alt.hidden=!o.alt;altFn=o.alt?o.alt.fn:null;alt.textContent=o.alt?o.alt.label:'';
-  card.hidden=false;
+  card.hidden=false;document.body.classList.add('modal');card.scrollTop=0;
   for(const k in K)K[k]=false;
   setTimeout(()=>{try{(o.btn?goBtn:opts.querySelector('.opt')||goBtn).focus({preventScroll:true});}catch(e){}},30);
 }
 let altFn=null;
 document.getElementById('cAlt').addEventListener('click',()=>{if(altFn)altFn();});
-function hideCard(){card.hidden=true;for(const k in K)K[k]=false;try{cv.focus();}catch(e){}}
+function hideCard(){card.hidden=true;document.body.classList.remove('modal');for(const k in K)K[k]=false;try{cv.focus();}catch(e){}}
 goBtn.addEventListener('click',()=>{initAudio();if(goFn)goFn();});
 
 /* ---------- Input ---------- */
@@ -871,7 +898,7 @@ function updHud(){
 /* ---------- Resize ---------- */
 function resize(){
   const r=stage.getBoundingClientRect();const aw=Math.max(100,r.width),ah=Math.max(100,r.height);
-  VW=Math.max(11*T,Math.min(26*T,Math.round(H*aw/ah)));
+  VW=Math.max(11*T,Math.min(40*T,Math.round(H*aw/ah)));
   scale=Math.min(aw/VW,ah/H);dpr=Math.min(2,window.devicePixelRatio||1);
   cv.style.width=Math.floor(VW*scale)+'px';cv.style.height=Math.floor(H*scale)+'px';
   cv.width=Math.round(VW*scale*dpr);cv.height=Math.round(H*scale*dpr);
@@ -1375,7 +1402,7 @@ function render(){
   if(state==='play'&&lvl.t<150||state==='card'){
     ctx.globalAlpha=state==='card'?0:Math.min(1,(150-lvl.t)/30);
     ctx.font='800 18px "Rubik",sans-serif';ctx.textAlign='left';const txt=cyr(lvl.name);const w=ctx.measureText(txt).width+24;
-    ctx.fillStyle='rgba(19,24,51,.75)';rr(ctx,12,12,w,30,10);ctx.fill();ctx.fillStyle='#fff';ctx.fillText(txt,24,33);ctx.globalAlpha=1;
+    const cx0=Math.round((VW-w)/2),cy0=matchMedia('(max-height:520px) and (orientation:landscape)').matches?Math.round(78/scale):12;ctx.fillStyle='rgba(19,24,51,.75)';rr(ctx,cx0,cy0,w,30,10);ctx.fill();ctx.fillStyle='#fff';ctx.fillText(txt,cx0+12,cy0+21);ctx.globalAlpha=1;
   }
 }
 
