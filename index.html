@@ -904,7 +904,7 @@ function updHud(){
 /* ---------- Resize ---------- */
 function resize(){
   const r=stage.getBoundingClientRect();const aw=Math.max(100,r.width),ah=Math.max(100,r.height);
-  VW=Math.max(9*T,Math.min(40*T,Math.round(H*aw/ah)));
+  VW=Math.max(10*T,Math.min(40*T,Math.round(H*aw/ah)));
   scale=Math.min(aw/VW,ah/H);dpr=Math.min(2,window.devicePixelRatio||1);
   cv.style.width=Math.floor(VW*scale)+'px';cv.style.height=Math.floor(H*scale)+'px';
   cv.width=Math.round(VW*scale*dpr);cv.height=Math.round(H*scale*dpr);
