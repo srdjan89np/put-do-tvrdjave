@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#131833">
-<meta name="description" content="Пут до Краљеве тврђаве – игрица за једног или два играча: мали витезови Војин и Вукашин пролазе 10 нивоа.">
+<meta name="description" content="Пут до Краљеве тврђаве – игрица за једног или више играча: мали витезови Војин, Вукашин, Сања и Срђан пролазе 10 нивоа.">
 <title>Пут до Краљеве тврђаве</title>
 <link rel="icon" type="image/png" href="icon.png">
 <!-- Fontovi: lokalni (fonts/fonts.css, pravi ih scripts/fetch-fonts.sh) pa Google Fonts kao rezerva -->
@@ -34,7 +34,8 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
 #app{height:100%;max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:8px;padding-inline:16px;padding-block:8px}
 
 /* HUD */
-.hud{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:stretch}
+.hud{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:stretch;min-height:66px}
+.pls{display:grid;grid-template-columns:repeat(var(--n,2),minmax(0,1fr));gap:6px;min-width:0}
 .pl{min-width:0;display:flex;flex-direction:column;gap:2px;padding:6px 10px;border-radius:12px;background:var(--panel);border:2px solid transparent;opacity:.7;transition:opacity .2s,border-color .2s}
 .pl.on{opacity:1;border-color:var(--c)}
 .pl.out{opacity:.4}
@@ -44,8 +45,18 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
 .pl .stats{display:flex;gap:10px;font-size:12px;color:var(--muted);font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden}
 .pl .stats span:first-child{color:var(--ink)}
 .pl .coin{color:var(--gold)}
-#hud1{text-align:right}
-#hud1 .top,#hud1 .stats{justify-content:flex-end}
+/* 3-4 igrača: zbijenija polja (ime / srca + poeni / nivo) */
+.pls.many{gap:4px}
+.pls.many .pl{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"n n" "h s" "l l";column-gap:4px;row-gap:1px;padding:4px 5px;align-items:baseline}
+.pls.many .pl .top,.pls.many .pl .stats{display:contents}
+.pls.many .pl b{grid-area:n;font-size:12px;letter-spacing:0}
+.pls.many .pl .hearts{grid-area:h;font-size:10px;letter-spacing:0}
+.pls.many .pl .sc{grid-area:s;font-size:11px;color:var(--ink);font-weight:800;font-variant-numeric:tabular-nums}
+.pls.many .pl .lv{grid-area:l;font-size:10px;color:var(--muted);font-weight:800}
+.pls.many .pl .coin{display:none}
+.opt{position:relative}
+.opt.sel{border-color:var(--c);background:var(--panel-2)}
+.opt .badge{position:absolute;top:6px;right:8px;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#2a1d00;font:800 13px/22px var(--display);text-align:center}
 .mid{display:flex;flex-direction:column;gap:6px;justify-content:center}
 .mid button{width:36px;height:30px;border-radius:9px;border:0;background:var(--panel-2);color:var(--ink);font:900 14px var(--body);cursor:pointer}
 .mid button:focus-visible,.pad button:focus-visible,.card button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
@@ -113,11 +124,13 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
 @media (max-height:520px) and (orientation:landscape){
   #app{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:minmax(0,1fr);gap:0 10px;padding-block:6px;padding-inline:max(10px,env(safe-area-inset-left,0px)) max(10px,env(safe-area-inset-right,0px));max-width:none}
   #stage{grid-row:1;grid-column:2;height:100%}
-  .hud{grid-row:1;grid-column:2;align-self:start;margin:4px 6px 0;z-index:3;pointer-events:none;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
+  .hud{grid-row:1;grid-column:2;align-self:start;margin:4px 6px 0;z-index:3;pointer-events:none;grid-template-columns:minmax(0,1fr) auto;min-height:0}
+  .pls{grid-template-columns:repeat(var(--n,2),minmax(0,150px))}
   .hud .mid{flex-direction:row;align-items:flex-start;justify-content:center}
   .hud .mid button{pointer-events:auto;opacity:.85}
-  .pl{padding:2px 8px;background:rgba(30,37,72,.7);max-width:260px}
-  #hud1{justify-self:end}
+  .pl{padding:2px 8px;background:rgba(21,27,56,.85)}
+  .opts .opt{padding-right:38px}
+  .opts .opt .badge{top:50%;margin-top:-11px;right:8px}
   .pl b{font-size:14px}.pl .stats{font-size:11px}
   #c{border-radius:0;box-shadow:none}
   .card{padding:10px 16px;gap:6px;max-height:calc(100% - 10px);max-width:min(94%,560px)}
@@ -149,17 +162,10 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
 <body>
 <div id="app">
   <header class="hud">
-    <div class="pl" id="hud0" style="--c:var(--vojin)">
-      <div class="top"><b>Војин</b><span class="hearts"></span></div>
-      <div class="stats"><span class="lv"></span><span class="coin"></span><span class="sc"></span></div>
-    </div>
+    <div class="pls" id="hudP"></div>
     <div class="mid">
       <button id="btnPause" aria-label="Пауза">❚❚</button>
       <button id="btnSound" aria-label="Звук">♪</button>
-    </div>
-    <div class="pl" id="hud1" style="--c:var(--vuk)">
-      <div class="top"><span class="hearts"></span><b>Вукашин</b></div>
-      <div class="stats"><span class="lv"></span><span class="coin"></span><span class="sc"></span></div>
     </div>
   </header>
 
@@ -214,8 +220,13 @@ const THEMES={
 
 const HEROES=[
   {name:'Vojin',voc:'Vojine',jacket:'#3a6ee8',jacketD:'#2449a8',hat:'#ffc62b',hatD:'#d99a00',hatStyle:'beanie',hair:'#15110f'},
-  {name:'Vukašin',voc:'Vukašine',jacket:'#2fa84f',jacketD:'#1d7a37',hat:'#ff8a3a',hatD:'#c9541c',hatStyle:'cap',hair:'#15110f'}
+  {name:'Vukašin',voc:'Vukašine',jacket:'#2fa84f',jacketD:'#1d7a37',hat:'#ff8a3a',hatD:'#c9541c',hatStyle:'cap',hair:'#15110f'},
+  {name:'Sanja',voc:'Sanja',acc:'Sanju',f:true,girl:true,jacket:'#b04fd6',jacketD:'#7d2fa0',hat:'#ff7ab8',hatD:'#d4508f',hair:'#6b3a1e'},
+  {name:'Srđan',voc:'Srđane',acc:'Srđana',beard:true,big:true,jacket:'#d0413f',jacketD:'#8a2222',hat:'#e9ecf2',hatD:'#b8bdc8',hair:'#2a1c14'}
 ];
+HEROES[0].acc='Vojina';HEROES[1].acc='Vukašina';
+// muški/ženski oblik reči: gw(c,'izgubio','izgubila')
+function gw(c,m,f){return c&&c.f?f:m;}
 
 /* ---------- Levels ---------- */
 const LEVELS=[
@@ -662,7 +673,7 @@ function die(){
   state='dying';dieT=0;hero.vy=-10;hero.vx=0;P().weapon=0;P().armor=false;P().horse=false;setRide(false);sfx('die');
 }
 function alive(i){return players[i].lives>0&&!players[i].done;}
-function pick(){if(players.length===1)return alive(0)?0:-1;const o=1-cur;if(alive(o))return o;if(alive(cur))return cur;return -1;}
+function pick(){const n=players.length;for(let k=1;k<=n;k++){const i=(cur+k)%n;if(alive(i))return i;}return -1;}
 function handleDeath(){
   const prev=cur;P().lives--;
   const n=pick();
@@ -722,7 +733,7 @@ function updateEnding(){
   fw=fw.filter(p=>p.life>0);
   if(K.jp){K.jp=false;if(endT>40&&endT<430)endT=430;}
   if(endT>=520&&!endCard){endCard=true;const c=P().c;
-    showCard({kick:'Kraljeva tvrđava',title:'Pravi vitez!',color:c.jacket,heroes:[c],info:'Kralj proglašava '+(c.name==='Vojin'?'Vojina':'Vukašina')+' najhrabrijim vitezom kraljevstva. +2000 poena',btn:'Dalje',go:()=>{hideCard();endAfter();}});}
+    showCard({kick:'Kraljeva tvrđava',title:gw(c,'Pravi vitez!','Prava vitežica!'),color:c.jacket,heroes:[c],info:'Kralj proglašava '+c.acc+' '+gw(c,'najhrabrijim vitezom','najhrabrijom vitežicom')+' kraljevstva. +2000 poena',btn:'Dalje',go:()=>{hideCard();endAfter();}});}
 }
 function prepareTurn(i,reason,prev){
   cur=i;const pl=P();
@@ -731,26 +742,27 @@ function prepareTurn(i,reason,prev){
   const solo=players.length===1;
   let kick='',title='Na redu: '+pl.c.name;
   if(reason==='start'){kick=solo?'Igra za jednog':'Prvi igra';if(solo)title='Srećno, '+pl.c.voc+'!';}
-  if(reason==='retry'){kick='Izgubio si život';title='Probaj ponovo, '+pl.c.voc+'!';}
-  if(reason==='switch')kick=players[prev].lives>0?pn+' je izgubio život':pn+' je ispao iz igre';
-  if(reason==='again'){const o=players[1-i];kick=o.done?o.c.name+' je već prešao sve nivoe':o.c.name+' više nema života';title=pl.c.name+' nastavlja!';}
+  const pc=prev!=null?players[prev].c:null;
+  if(reason==='retry'){kick=gw(pl.c,'Izgubio','Izgubila')+' si život';title='Probaj ponovo, '+pl.c.voc+'!';}
+  if(reason==='switch')kick=players[prev].lives>0?pn+' je '+gw(pc,'izgubio','izgubila')+' život':pn+' je '+gw(pc,'ispao','ispala')+' iz igre';
+  if(reason==='again'){kick=players.length===2?(()=>{const o=players[1-i];return o.done?o.c.name+' je već '+gw(o.c,'prešao','prešla')+' sve nivoe':o.c.name+' više nema života';})():'Ostali su završili igru';title=pl.c.name+' nastavlja!';}
   if(reason==='level'){kick='Nivo pređen!';title='Bravo, '+pl.c.voc+'!';}
-  if(reason==='done')kick=pn+' je prešao sve nivoe!';
+  if(reason==='done')kick=pn+' je '+gw(pc,'prešao','prešla')+' sve nivoe!';
   const L=LEVELS[pl.level];
   showCard({kick,title,color:pl.c.jacket,heroes:[pl.c],
     info:`Nivo ${pl.level+1} od ${LEVELS.length}: ${L.name}`+(L.theme==='zima'?' (pazi, led je klizav!)':''),
-    hint:'♥ '+pl.lives+(pl.lives===1?' život':' života')+(pl.cp?' · krećeš od kontrolne tačke':''),
+    hint:'♥ '+pl.lives+(pl.lives===1?' život':' života')+(pl.cp?' · krećeš od kontrolne tačke':'')+(!solo&&reason==='start'?' · redosled: '+players.map(p=>p.c.name).join(' → '):''),
     btn:'Kreni!',go:()=>{hideCard();state='play';}});
 }
 function gameOver(){
   state='over';
   const ps=players;const best=Math.max(...ps.map(p=>p.score));
   const winners=ps.filter(p=>p.score===best);
-  const rows=ps.map(p=>({c:p.c,line:p.done?'Prešao sve nivoe':'Stigao do nivoa '+(p.level+1),score:p.score}));
+  const rows=ps.map(p=>({c:p.c,line:p.done?gw(p.c,'Prešao','Prešla')+' sve nivoe':gw(p.c,'Stigao','Stigla')+' do nivoa '+(p.level+1),score:p.score}));
   let title,color,heroes;
   if(ps.length===1){const p=ps[0];title=p.done?'Pobeda, '+p.c.voc+'!':'Kraj igre';color=p.c.jacket;heroes=[p.c];}
   else if(winners.length>1){title='Nerešeno!';color='#ffc62b';heroes=winners.map(p=>p.c);}
-  else{title='Pobednik: '+winners[0].c.name+'!';color=winners[0].c.jacket;heroes=[winners[0].c];}
+  else{title=gw(winners[0].c,'Pobednik: ','Pobednica: ')+winners[0].c.name+'!';color=winners[0].c.jacket;heroes=[winners[0].c];}
   const ids=addScores(ps.map(p=>({h:p.idx,s:p.score,l:p.done?11:p.level+1})));
   ps.forEach(p=>{const e=getScores().find(x=>ids.includes(x.id)&&x.h===p.idx&&x.s===p.score);
     const r=rows.find(r=>r.c===p.c);if(e&&r){const rk=scoreRank(e.id);r.line=rk===1?'Novi rekord!':rk+'. mesto na tabeli';}});
@@ -793,19 +805,20 @@ function startGame(s){
 }
 function showTitle(){
   state='title';players=null;hudKey='';lvl=build(LEVELS[0]);cam=0;
-  showCard({kick:'Vojin i Vukašin · '+LEVELS.length+' nivoa',title:'Put do Kraljeve tvrđave',color:'#ffc62b',heroes:HEROES,
-    info:'Dva mala viteza kreću u avanturu. Skupljaj novčiće, skači na bube, pokupi praćku i stigni do zastave. Koliko vas igra?',
+  showCard({kick:'Jedan ili više igrača · '+LEVELS.length+' nivoa',title:'Put do Kraljeve tvrđave',color:'#ffc62b',heroes:HEROES,
+    info:'Mali vitezovi kreću u avanturu. Skupljaj novčiće, skači na bube, pokupi praćku i stigni do Kraljeve tvrđave.',
     hint:matchMedia('(hover:hover) and (pointer:fine)').matches?'← → kretanje · ↑ ili razmak skok · {X} pucanje iz praćke · {P} pauza':'◀ ▶ kretanje, SKOK skok, PUCAJ kad pokupiš praćku. Najbolje se igra kad okreneš telefon.',
-    options:[
-      {label:'1 igrač',sub:'Igraš sam, biraš junaka',fn:()=>chooseHero(1)},
-      {label:'2 igrača',sub:'Jedan po jedan: kad jedan izgubi život, igra drugi',fn:()=>chooseHero(2)}
-    ],record:bestLine(),alt:{label:'Najbolji rezultati',fn:()=>showScores()}});
+    btn:'Izaberi igrače',go:()=>choosePlayers([]),
+    record:bestLine(),alt:{label:'Najbolji rezultati',fn:()=>showScores()}});
 }
-function chooseHero(mode){
-  showCard({kick:mode===1?'1 igrač':'2 igrača',title:mode===1?'Izaberi junaka':'Ko igra prvi?',color:'#ffc62b',
-    options:HEROES.map((c,i)=>({label:c.name,sub:mode===1?'Igraj kao '+c.name:c.name+' počinje',hero:c,color:c.jacket,
-      fn:()=>startGame({order:mode===1?[i]:[i,1-i]})})),
-    alt:{label:'Nazad',fn:()=>showTitle()}});
+let lastPick=[0];
+function choosePlayers(sel,focusIdx){
+  showCard({kick:'Jedan ili više igrača',title:'Ko igra?',color:'#ffc62b',
+    info:sel.length?(sel.length===1?'Igra '+HEROES[sel[0]].name+'.':'Igraju redom: '+sel.map(i=>HEROES[i].name).join(' → ')):'Dodirni od 1 do 4 igrača. Redom kojim ih biraš, tako igraju.',
+    options:HEROES.map((c,i)=>{const k=sel.indexOf(i);return {label:c.name,sub:k>=0?'igra '+(k+1)+'.':'dodirni za izbor',hero:c,color:c.jacket,badge:k>=0?k+1:0,sel:k>=0,
+      fn:()=>{const n=sel.slice();const j=n.indexOf(i);if(j>=0)n.splice(j,1);else n.push(i);choosePlayers(n,i);}};}),
+    btn:sel.length?'Kreni!':'',go:sel.length?()=>{lastPick=sel.slice();startGame({order:sel.slice()});}:null,
+    focus:focusIdx,alt:{label:'Nazad',fn:()=>showTitle()}});
 }
 function togglePause(){
   if(state==='play'){state='paused';showCard({kick:'Pauza',title:'Odmor',color:P().c.jacket,heroes:[P().c],info:'Igra stoji dok ne nastaviš.',btn:'Nastavi',go:()=>{hideCard();state='play';}});}
@@ -833,7 +846,7 @@ function showCard(o){
     if(o.tableNew&&o.tableNew.includes(e.id))li.className='new';
     li.innerHTML='<span class="rk"></span><span class="nm"><b></b><small></small></span><span class="sc"></span>';
     li.querySelector('.rk').textContent=(i+1)+'.';li.querySelector('b').textContent=cyr(hc.name);
-    li.querySelector('small').textContent=cyr((e.l>LEVELS.length?'Prešao sve nivoe ★':'Nivo '+e.l)+' · '+e.d);
+    li.querySelector('small').textContent=cyr((e.l>LEVELS.length?gw(hc,'Prešao','Prešla')+' sve nivoe ★':'Nivo '+e.l)+' · '+e.d);
     li.querySelector('.sc').textContent=e.s;hs.appendChild(li);});
   const rows=document.getElementById('cRows');rows.innerHTML='';rows.hidden=!o.rows;
   (o.rows||[]).forEach(r=>{const d=document.createElement('div');d.className='r';d.style.setProperty('--c',r.c.jacket);
@@ -841,6 +854,8 @@ function showCard(o){
   const opts=document.getElementById('cOpts');opts.innerHTML='';opts.hidden=!o.options;
   (o.options||[]).forEach(op=>{const b=document.createElement('button');b.className='opt';if(op.color)b.style.setProperty('--c',op.color);
     if(op.hero){const pc=document.createElement('canvas');pc.width=96;pc.height=110;const g=pc.getContext('2d');g.scale(2.6,2.6);drawHero(g,op.hero,7,6,1,0,false,false);b.appendChild(pc);}
+    if(op.badge){const bd=document.createElement('span');bd.className='badge';bd.textContent=op.badge;b.appendChild(bd);}
+    if(op.sel)b.classList.add('sel');
     const lb=document.createElement('b');lb.textContent=op.label;b.appendChild(lb);
     if(op.sub){const sm=document.createElement('small');sm.textContent=op.sub;b.appendChild(sm);}
     b.addEventListener('click',()=>{initAudio();op.fn();});opts.appendChild(b);});
@@ -848,7 +863,7 @@ function showCard(o){
   const alt=document.getElementById('cAlt');alt.hidden=!o.alt;altFn=o.alt?o.alt.fn:null;alt.textContent=o.alt?o.alt.label:'';
   card.hidden=false;document.body.classList.add('modal');card.scrollTop=0;
   for(const k in K)K[k]=false;
-  setTimeout(()=>{try{(o.btn?goBtn:opts.querySelector('.opt')||goBtn).focus({preventScroll:true});}catch(e){}},30);
+  setTimeout(()=>{try{(o.focus!=null&&opts.children[o.focus]?opts.children[o.focus]:o.btn?goBtn:opts.querySelector('.opt')||goBtn).focus({preventScroll:true});}catch(e){}},30);
 }
 let altFn=null;
 document.getElementById('cAlt').addEventListener('click',()=>{if(altFn)altFn();});
@@ -884,17 +899,24 @@ const sBtn=document.getElementById('btnSound');
 sBtn.addEventListener('click',()=>{muted=!muted;sBtn.classList.toggle('off',muted);initAudio();});
 
 /* ---------- HUD ---------- */
-const hudEls=[document.getElementById('hud0'),document.getElementById('hud1')];let hudKey='';
+const hudP=document.getElementById('hudP');let hudKey='',hudEls=[];
 const shootBtn=document.getElementById('btnShoot');
+function buildHud(){
+  hudP.innerHTML='';hudEls=[];
+  const n=players?players.length:0;hudP.style.setProperty('--n',Math.max(n,1));hudP.classList.toggle('many',n>=3);
+  (players||[]).forEach(p=>{const el=document.createElement('div');el.className='pl';el.style.setProperty('--c',p.c.jacket);
+    el.innerHTML='<div class="top"><b></b><span class="hearts"></span></div><div class="stats"><span class="lv"></span><span class="coin"></span><span class="sc"></span></div>';
+    el.querySelector('b').textContent=cyr(p.c.name);hudP.appendChild(el);hudEls.push(el);});
+}
 function updHud(){
-  if(!players){if(hudKey==='none')return;hudKey='none';shootBtn.classList.add('dim');hudEls.forEach(el=>{el.classList.remove('on','out','gone');el.querySelector('.hearts').textContent='♥♥♥';el.querySelector('.lv').textContent=cyr('Nivo 1');el.querySelector('.coin').textContent='● 0';el.querySelector('.sc').textContent='0';});return;}
+  if(!players){if(hudKey==='none')return;hudKey='none';shootBtn.classList.add('dim');buildHud();return;}
+  if(hudEls.length!==players.length||hudKey==='none'||hudKey==='')buildHud();
   const k=players.map(p=>[p.lives,p.coins,p.score,p.level,p.done,p.weapon,p.armor,p.horse].join()).join('|')+cur+state;
   if(k===hudKey)return;hudKey=k;
-  hudEls.forEach((el,i)=>el.classList.toggle('gone',!players.some(p=>p.idx===i)));
   shootBtn.classList.toggle('dim',!P().weapon);
-  players.forEach((p,i)=>{const el=hudEls[p.idx];
+  players.forEach((p,i)=>{const el=hudEls[i];
     el.classList.toggle('on',i===cur&&state!=='over');el.classList.toggle('out',p.lives<=0);
-    el.querySelector('.hearts').textContent=p.lives>0?'♥'.repeat(Math.min(p.lives,5))+(p.lives>5?'+':''):cyr('ispao');
+    el.querySelector('.hearts').textContent=p.lives>0?'♥'.repeat(Math.min(p.lives,5))+(p.lives>5?'+':''):cyr(gw(p.c,'ispao','ispala'));
     el.querySelector('.lv').textContent=cyr(p.done?'Kraj ★':'Nivo '+(p.level+1));
     el.querySelector('.coin').textContent=cyr('● '+p.coins+(p.weapon===2?' · Super praćka':p.weapon?' · Praćka':'')+(p.armor?' · Oklop':'')+(p.horse?' · Konj':''));
     el.querySelector('.sc').textContent=p.score;
@@ -940,9 +962,13 @@ function ell(g,x,y,rx,ry){g.beginPath();g.ellipse(x,y,Math.max(.1,rx),Math.max(.
 const hash=(a,b)=>{const s=Math.sin(a*127.1+b*311.7)*43758.5453;return s-Math.floor(s);};
 
 function kHead(g,c,pf){
-  g.fillStyle='#f3c39b';rr(g,-7,2,14,11,4);g.fill();g.fillStyle='#1a1a24';g.fillRect(3,5.5,2.5,3);g.fillStyle='#b5574a';g.fillRect(3,10.5,3,1.2);
+  if(c.girl){g.fillStyle=c.hair;g.save();g.translate(-8,5);g.rotate(0.5);rr(g,-3,0,6,15,3);g.fill();g.fillStyle=c.hat;circ(g,0,15,2.2);g.restore();}
+  g.fillStyle='#f3c39b';rr(g,-7,2,14,11,4);g.fill();g.fillStyle='#1a1a24';g.fillRect(3,5.5,2.5,3);
+  if(c.beard){g.fillStyle=c.hair;g.beginPath();g.moveTo(-2,8.5);g.lineTo(7.5,8.5);g.quadraticCurveTo(7,14.5,2.5,14.5);g.quadraticCurveTo(-2,14,-2,8.5);g.fill();}
+  else{g.fillStyle='#b5574a';g.fillRect(3,10.5,3,1.2);}
   g.fillStyle=c.hair;g.fillRect(-7,3,5,9);g.beginPath();g.moveTo(-3,3);g.lineTo(7,3);g.lineTo(6,5.5);g.lineTo(4,4.2);g.lineTo(2,6);g.lineTo(0,4.4);g.lineTo(-2,6);g.closePath();g.fill();
   g.fillStyle='#c9ced8';rr(g,-9,-4,18,8,4);g.fill();g.fillRect(-9,0,4,11);g.fillStyle='#9aa3b5';g.fillRect(-9,3,18,2);g.fillStyle='#c9ced8';g.fillRect(0,3,2,5);
+  if(c.big){g.fillStyle='#ffd75e';g.beginPath();g.moveTo(-6,-4);g.lineTo(-6,-8);g.lineTo(-3,-5.5);g.lineTo(0,-9);g.lineTo(3,-5.5);g.lineTo(6,-8);g.lineTo(6,-4);g.fill();}
   g.fillStyle=c.hat;g.beginPath();g.moveTo(-2,-4);g.quadraticCurveTo(-4,-13+pf,-12,-11+pf);g.quadraticCurveTo(-6,-8,-4,-4);g.fill();
 }
 function riderBack(g,c,lean,ph,run){
@@ -992,6 +1018,7 @@ function drawRiding(g,c,x,feetY,face,ph,run,air){
 }
 function drawHero(g,c,x,y,face,walk,air,hurt,weapon,armor){
   g.save();g.translate(x+11,y);if(face<0)g.scale(-1,1);
+  if(c.big){g.translate(0,30);g.scale(1.08,1.08);g.translate(0,-30);}
   const lg=air?3:Math.sin(walk)*4,sw=air?-4:Math.sin(walk+Math.PI)*3;
   const flap=air?-3:Math.sin(walk*0.5)*2;
   // cape
@@ -1001,6 +1028,7 @@ function drawHero(g,c,x,y,face,walk,air,hurt,weapon,armor){
   g.fillStyle='#1a1a24';rr(g,-8+lg*0.5,27,8,3.5,1.5);g.fill();rr(g,0-lg*0.5,27,8,3.5,1.5);g.fill();
   // tunic with belt and crest
   g.fillStyle=c.jacket;rr(g,-9,11,18,14,3);g.fill();
+  if(c.girl){g.beginPath();g.moveTo(-10,20);g.lineTo(10,20);g.lineTo(12,26);g.lineTo(-12,26);g.closePath();g.fill();}
   g.fillStyle='#ffd75e';g.fillRect(-9,20,18,2.5);
   g.fillStyle='#ffffff';g.beginPath();g.moveTo(-3,13);g.lineTo(3,13);g.lineTo(3,17);g.lineTo(0,19.5);g.lineTo(-3,17);g.fill();
   g.fillStyle=c.hat;g.fillRect(-0.8,13.5,1.6,5);
@@ -1024,12 +1052,16 @@ function drawHero(g,c,x,y,face,walk,air,hurt,weapon,armor){
   }
   g.fillStyle=c.jacketD;rr(g,ax-4,13,5,8,2.5);g.fill();
   g.fillStyle='#c9ced8';circ(g,ax-1.5,20,2.8);
+  // braid (behind the face)
+  if(c.girl){g.fillStyle=c.hair;g.save();g.translate(-8,5);g.rotate(0.35+(air?-0.3:Math.sin(walk)*0.06));rr(g,-3,0,6,15,3);g.fill();g.fillStyle=c.hat;circ(g,0,15,2.2);g.restore();}
   // face
   g.fillStyle='#f3c39b';rr(g,-7,2,14,11,4);g.fill();
   if(hurt){g.strokeStyle='#1a1a24';g.lineWidth=1.4;g.beginPath();g.moveTo(2.5,4.5);g.lineTo(6,8);g.moveTo(6,4.5);g.lineTo(2.5,8);g.stroke();}
   else{g.fillStyle='#1a1a24';g.fillRect(3,5.5,2.5,3);}
   g.fillStyle='#ff9e9e';g.globalAlpha=.6;circ(g,1.5,10,1.6);g.globalAlpha=1;
-  g.fillStyle='#b5574a';g.fillRect(3,10.5,3,1.2);
+  if(c.girl&&!hurt){g.fillStyle='#1a1a24';g.fillRect(5.5,4.6,1.4,1);}
+  if(c.beard){g.fillStyle=c.hair;g.beginPath();g.moveTo(-2,8.5);g.lineTo(7.5,8.5);g.quadraticCurveTo(7,14.5,2.5,14.5);g.quadraticCurveTo(-2,14,-2,8.5);g.fill();g.fillStyle='#b5574a';g.fillRect(3,9.8,3,1);}
+  else{g.fillStyle='#b5574a';g.fillRect(3,10.5,3,1.2);}
   // black hair under the helmet
   g.fillStyle=c.hair;g.fillRect(-7,3,5,9);
   g.beginPath();g.moveTo(-3,3);g.lineTo(7,3);g.lineTo(6,5.5);g.lineTo(4,4.2);g.lineTo(2,6);g.lineTo(0,4.4);g.lineTo(-2,6);g.closePath();g.fill();
@@ -1038,6 +1070,7 @@ function drawHero(g,c,x,y,face,walk,air,hurt,weapon,armor){
   g.fillStyle='#9aa3b5';g.fillRect(-9,3,18,2);
   g.fillStyle='#e9ecf2';g.fillRect(-6,-3,6,1.5);
   g.fillStyle='#c9ced8';g.fillRect(0,3,2,5);
+  if(c.big){g.fillStyle='#ffd75e';g.beginPath();g.moveTo(-6,-4);g.lineTo(-6,-8);g.lineTo(-3,-5.5);g.lineTo(0,-9);g.lineTo(3,-5.5);g.lineTo(6,-8);g.lineTo(6,-4);g.fill();}
   // plume
   const pf=air?2:Math.sin(walk*0.5)*1.5;
   g.fillStyle=c.hat;g.beginPath();g.moveTo(-2,-4);g.quadraticCurveTo(-4,-13+pf,-12,-11+pf);g.quadraticCurveTo(-6,-8,-4,-4);g.fill();
@@ -1094,7 +1127,7 @@ function drawEnding(g,W,H,t,c,fw,weapon){
     g.globalAlpha=Math.min(1,(t-260)/30);const fs=Math.min(42,W/9);
     g.textAlign='center';g.font='800 '+fs+'px "Rubik",sans-serif';g.lineWidth=6;g.strokeStyle='#130c2a';
     const bt=cyr('Bravo, '+c.voc+'!');g.strokeText(bt,cx,64);g.fillStyle=c.hat;g.fillText(bt,cx,64);
-    g.font='16px "Nunito",sans-serif';g.lineWidth=4;const st=cyr('Stigao si do Kraljeve tvrđave!');g.strokeText(st,cx,92);g.fillStyle='#ffffff';g.fillText(st,cx,92);
+    g.font='16px "Nunito",sans-serif';g.lineWidth=4;const st=cyr((c.f?'Stigla':'Stigao')+' si do Kraljeve tvrđave!');g.strokeText(st,cx,92);g.fillStyle='#ffffff';g.fillText(st,cx,92);
     g.globalAlpha=1;
   }
 }
@@ -1389,8 +1422,7 @@ function render(){
   for(const s of lvl.shots){if(s.sup){drawStar(ctx,s.x,s.y,8,tick*0.3);}else{ctx.fillStyle='#6d6458';circ(ctx,s.x,s.y,4.5);ctx.fillStyle='#b8ad9c';circ(ctx,s.x-1.2,s.y-1.2,2);}}
   for(const e of lvl.enemies)if(!e.gone&&e.x>c-40&&e.x<c+VW+40&&(!e.dead||e.squish))drawEnemy(e);
   if(state==='title'){
-    drawHero(ctx,HEROES[0],4*T,12*T-30-Math.abs(Math.sin(tick*0.06))*6,1,0,false,false);
-    drawHero(ctx,HEROES[1],6*T,12*T-30-Math.abs(Math.sin(tick*0.06+1.4))*6,-1,0,false,false);
+    HEROES.forEach((c,i)=>drawHero(ctx,c,(3+i*2)*T,12*T-30-Math.abs(Math.sin(tick*0.06+i*1.4))*6,i%2?-1:1,0,false,false));
   }else if(hero&&!hero.hidden&&players){
     const h=hero;const air=!h.ground&&state==='play';
     if(state==='dying'){ctx.save();ctx.translate(h.x+11,h.y+15);ctx.rotate(Math.min(dieT*0.06,Math.PI));drawHero(ctx,P().c,-11,-15,h.face,0,true,true);ctx.restore();}

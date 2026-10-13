@@ -5,7 +5,7 @@
 <h1 align="center">Пут до Краљеве тврђаве</h1>
 
 <p align="center">
-  Platformska igrica za jednog ili dva igrača. Mali vitezovi <b>Vojin</b> i <b>Vukašin</b> prolaze 10 nivoa,
+  Platformska igrica za jednog ili više igrača (do 4). Mali vitezovi <b>Vojin</b>, <b>Vukašin</b>, <b>Sanja</b> i <b>Srđan</b> prolaze 10 nivoa,
   skupljaju novčiće, skaču na bube i stižu do Kraljeve tvrđave.
 </p>
 
@@ -19,12 +19,12 @@
 
 ## Kako se igra
 
-- **1 igrač:** biraš Vojina ili Vukašina i igraš sam.
-- **2 igrača:** igrate jedan po jedan. Kad jedan izgubi život, na redu je drugi.
+- **Jedan ili više igrača:** na početku dodirneš ko igra, od 1 do 4: Vojin (plavi), Vukašin (zeleni), Sanja (ljubičasta) i Srđan (crveni). Redom kojim ih biraš, tako igraju.
+- Igra se jedan po jedan. Kad neko izgubi život, na redu je sledeći. Ko ostane bez života ispada, ostali nastavljaju.
 - Svaki igrač ima **3 života**. Na sredini svakog nivoa je kontrolna tačka.
 - Na kraju nivoa vitez ulazi u dvorac i svira pobednička melodija.
 - **Najbolji rezultati:** igra pamti 10 najboljih rezultata na uređaju. Tabela se vidi na kraju igre i u glavnom meniju, a rekord piše na početnom ekranu.
-- Posle 10. nivoa ide završna scena sa kraljem i vatrometom. Pobeđuje igrač sa više poena.
+- Posle 10. nivoa ide završna scena sa kraljem i vatrometom. Pobeđuje igrač sa najviše poena.
 
 ### Kontrole
 
