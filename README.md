@@ -6,7 +6,7 @@
 
 <p align="center">
   Platformska igrica za jednog ili više igrača (do 4). Mali vitezovi <b>Vojin</b>, <b>Vukašin</b>, <b>Sanja</b> i <b>Srđan</b> prolaze 10 nivoa,
-  skupljaju novčiće, skaču na bube i stižu do Kraljeve tvrđave.
+  skupljaju drago kamenje, otvaraju sanduke, bore se mačem sa goblinima i stižu do Kraljeve tvrđave.
 </p>
 
 <p align="center">
@@ -32,10 +32,15 @@
 |---|---|---|
 | Kretanje | ◀ ▶ | ← → ili A D |
 | Skok | СКОК | ↑, razmak, W ili Z |
-| Pucanje | ПУЦАЈ | X, F ili Shift |
+| Mač / praćka | УДАРАЈ (sa praćkom ПУЦАЈ) | X, F ili Shift |
 | Pauza | ❚❚ gore | P ili Esc |
 
 Na Android telefonu dugme **nazad** pauzira igru, a drugi pritisak izlazi iz aplikacije.
+
+### Mač i sanduci
+
+- Dugme **УДАРАЈ** zamahuje mačem i obara neprijatelje ispred viteza. Kad vitez pokupi praćku, isto dugme piše **ПУЦАЈ** i puca.
+- Sanduci sa blagom se otvaraju kad ih vitez dodirne, stane na njih ili ih udari mačem. Iz njih iskoči drago kamenje.
 
 ### Pokloni
 
@@ -61,7 +66,7 @@ Kad izgubi život, vitez gubi sve poklone.
 9. Олуја у облацима
 10. Краљева тврђава
 
-Neprijatelji su bubamare, ježevi (na njih ne sme da se skoči) i mali zmajevi. Prepreke su provalije, lava, šiljci, kružne testere, opruge i pokretne platforme.
+Neprijatelji su goblini, ježevi (na njih ne sme da se skoči) i mali zmajevi. Svi mogu da se obore mačem. Prepreke su provalije, lava, šiljci, kružne testere, opruge i pokretne platforme.
 
 ## Instalacija na Android
 
