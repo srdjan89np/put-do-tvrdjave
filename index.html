@@ -855,7 +855,7 @@ function showCard(o){
   const info=document.getElementById('cInfo');info.textContent=o.info||'';info.hidden=!o.info;
   const hint=document.getElementById('cHint');hint.textContent=o.hint||'';hint.hidden=!o.hint;
   const pors=document.getElementById('cPors');pors.innerHTML='';pors.hidden=!(o.heroes&&o.heroes.length);
-  (o.heroes||[]).forEach(c=>{const pc=document.createElement('canvas');pc.width=112;pc.height=128;const g=pc.getContext('2d');g.scale(3,3);drawHero(g,c,7,6,1,0,false,false);pors.appendChild(pc);});
+  (o.heroes||[]).forEach(c=>{const pc=document.createElement('canvas');pc.width=112;pc.height=128;const g=pc.getContext('2d');g.scale(3,3);const pw=players&&state!=='over'?players.find(p=>p.c===c):null;drawHero(g,c,7,6,1,0,false,false,pw?pw.weapon:0,pw?pw.armor:false);pors.appendChild(pc);});
   if(o.record){info.textContent=(o.info?o.info+' ':'');const rb=document.createElement('b');rb.style.color='var(--gold)';rb.style.whiteSpace='nowrap';rb.textContent=cyr(o.record);info.appendChild(rb);}
   const hs=document.getElementById('cHs'),hsT=document.getElementById('cHsT');hs.innerHTML='';
   const tbl=o.table&&o.table.length?o.table:null;hs.hidden=!tbl;hsT.hidden=!(tbl&&o.tableTitle);hsT.textContent=cyr(o.tableTitle||'');
@@ -889,7 +889,7 @@ goBtn.addEventListener('click',()=>{initAudio();if(goFn)goFn();});
 
 /* ---------- Input ---------- */
 function press(k,v){if(k==='j'){if(v&&!K.j&&card.hidden)K.jp=true;if(v&&state==='ending'&&card.hidden)K.jp=true;K.j=v;}else if(k==='s'){if(v&&!K.s&&card.hidden)K.sp=true;K.s=v;}else if(k==='a'){if(v&&!K.a&&card.hidden)K.ap=true;K.a=v;}else K[k]=v;}
-const KEYMAP={ArrowLeft:'l',KeyA:'l',ArrowRight:'r',KeyD:'r',ArrowUp:'j',KeyW:'j',Space:'j',KeyZ:'j',KeyX:'s',KeyF:'s',ShiftLeft:'s',ShiftRight:'s',KeyC:'a',KeyV:'a',ControlLeft:'a',ControlRight:'a'};
+const KEYMAP={ArrowLeft:'l',KeyA:'l',ArrowRight:'r',KeyD:'r',ArrowUp:'j',KeyW:'j',Space:'j',KeyZ:'j',KeyX:'s',KeyF:'s',ShiftLeft:'s',ShiftRight:'s',KeyC:'s',KeyV:'s',ControlLeft:'s',ControlRight:'s'};
 addEventListener('keydown',e=>{
   initAudio();
   if(!card.hidden){
