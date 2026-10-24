@@ -15,6 +15,11 @@
   <a href="https://srdjan89np.github.io/put-do-tvrdjave/"><b>🎮 Igraj u pregledaču</b></a>
 </p>
 
+<p align="center">
+  <a href="docs/promo.mp4"><img src="docs/promo-poster.jpg" width="640" alt="Promo klip igrice (30 s)"></a><br>
+  <sub>▶ <a href="docs/promo.mp4">Pogledaj promo klip</a> (30 s)</sub>
+</p>
+
 ---
 
 ## Kako se igra
@@ -88,6 +93,7 @@ icon.png                    ikonica
 android/                    Android aplikacija (WebView koji otvara index.html)
 scripts/fetch-fonts.sh      preuzima fontove Rubik i Nunito (ćirilica) za rad bez interneta
 scripts/make-icons.py       crta ikonicu u svim veličinama
+scripts/promo/              pravi promo klip docs/promo.mp4 iz prave igre
 .github/workflows/          automatsko pravljenje APK-a i objava na GitHub Pages
 ```
 
