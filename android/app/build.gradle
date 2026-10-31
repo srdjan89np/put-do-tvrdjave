@@ -8,12 +8,12 @@ def ks = System.getenv('ANDROID_KEYSTORE_FILE')
 
 android {
     namespace 'rs.vojinvukasin.tvrdjava'
-    compileSdk 34
+    compileSdk 36
 
     defaultConfig {
         applicationId 'rs.vojinvukasin.tvrdjava'
         minSdk 21
-        targetSdk 34
+        targetSdk 36
         versionCode ciVersionCode
         versionName ciVersionName
     }

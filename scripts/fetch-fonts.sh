@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Preuzima fontove (Rubik i Nunito, ćirilica + latinica) sa npm-a u folder fonts/
+# Preuzima fontove (Rubik i Nunito, ćirilica + latinica) sa GitHub-a (fontsource) u folder fonts/
 # da igrica izgleda isto i bez interneta (APK, GitHub Pages).
 # Pokretanje:  bash scripts/fetch-fonts.sh [izlazni_folder]
 set -euo pipefail
@@ -9,10 +9,14 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
 mkdir -p "$OUT"
-( cd "$TMP" && npm pack @fontsource/rubik@5 @fontsource/nunito@5 >/dev/null \
-  && mkdir rubik nunito \
-  && tar xzf fontsource-rubik-*.tgz -C rubik --strip-components=1 \
-  && tar xzf fontsource-nunito-*.tgz -C nunito --strip-components=1 )
+# Fajlovi fontova iz repozitorijuma fontsource/font-files na GitHub-u (samo potrebni fajlovi).
+git clone -q --depth 1 --filter=blob:none --sparse https://github.com/fontsource/font-files.git "$TMP/ff"
+git -C "$TMP/ff" sparse-checkout set --no-cone \
+  '/fonts/google/rubik/files/rubik-*-[789]00-normal.woff2' \
+  '/fonts/google/nunito/files/nunito-*-[689]00-normal.woff2'
+mkdir -p "$TMP/rubik" "$TMP/nunito"
+ln -s "$TMP/ff/fonts/google/rubik/files" "$TMP/rubik/files"
+ln -s "$TMP/ff/fonts/google/nunito/files" "$TMP/nunito/files"
 
 CYR='U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116'
 LAT='U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD'

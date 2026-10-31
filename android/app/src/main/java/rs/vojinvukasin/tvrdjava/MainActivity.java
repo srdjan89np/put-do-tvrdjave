@@ -13,6 +13,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.window.OnBackInvokedDispatcher;
 
 /** Igrica "Put do Kraljeve tvrđave" u WebView-u, cela na ekranu. */
 public class MainActivity extends Activity {
@@ -54,6 +55,12 @@ public class MainActivity extends Activity {
         } else {
             web.loadUrl("file:///android_asset/index.html");
         }
+
+        // Android 16 i noviji (targetSdk 36) ne šalju taster "nazad", nego ovaj poziv.
+        if (Build.VERSION.SDK_INT >= 33) {
+            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                    OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::handleBack);
+        }
     }
 
     @SuppressWarnings("deprecation")
@@ -92,15 +99,20 @@ public class MainActivity extends Activity {
         hideSystemBars();
     }
 
+    /** "Nazad" pauzira igru (kao taster P); kad je otvoren meni, izlazi iz aplikacije. */
+    private void handleBack() {
+        web.evaluateJavascript(
+                "(function(){var c=document.getElementById('card');"
+                        + "if(c&&c.hidden){window.dispatchEvent(new KeyboardEvent('keydown',{code:'KeyP'}));return 'paused';}"
+                        + "return 'menu';})()",
+                result -> { if (result != null && result.contains("menu")) finish(); });
+    }
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        // Dugme "nazad" pauzira igru (kao taster P); drugi pritisak izlazi iz aplikacije.
+        // Android 15 i stariji: dugme "nazad" stiže kao taster.
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            web.evaluateJavascript(
-                    "(function(){var c=document.getElementById('card');"
-                            + "if(c&&c.hidden){window.dispatchEvent(new KeyboardEvent('keydown',{code:'KeyP'}));return 'paused';}"
-                            + "return 'menu';})()",
-                    result -> { if (result != null && result.contains("menu")) finish(); });
+            handleBack();
             return true;
         }
         return super.onKeyDown(keyCode, event);

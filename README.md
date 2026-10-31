@@ -82,6 +82,14 @@ Neprijatelji su goblini, ježevi (na njih ne sme da se skoči) i mali zmajevi. S
 
 Nova verzija se instalira preko stare, rezultati se ne čuvaju između igara.
 
+## Google Play
+
+Verzija 2.0 je spremna za Google Play: cilja Android 16 (API 36), dugme „nazad“ radi i na Androidu 16, fontovi su u aplikaciji, pa igra ne traži dozvolu za internet i ne prikuplja nikakve podatke.
+
+- [`docs/play/`](docs/play/): ikonica za prodavnicu (512×512), velika slika (1024×500) i tekstovi za stranicu u prodavnici.
+- [`docs/privatnost.html`](docs/privatnost.html): politika privatnosti.
+- [`scripts/play/make_aab.py`](scripts/play/make_aab.py): pravi Android App Bundle (`.aab`) bez Android SDK-a, uz [bundletool](https://github.com/google/bundletool/releases). Ključ za otpremanje na Play se ne čuva u repozitorijumu.
+
 ## Kako je napravljena
 
 Cela igrica je jedan fajl, [`index.html`](index.html): HTML, CSS i JavaScript bez spoljnih biblioteka. Crta se na `<canvas>`, a zvuk i muzika se prave u pregledaču (Web Audio). Melodije na kraju nivoa su klasične i slobodne za korišćenje: Betovenova „Oda radosti“, Mocartova „Mala noćna muzika“ i „Turski marš“.
