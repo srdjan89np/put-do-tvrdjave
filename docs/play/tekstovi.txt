@@ -25,7 +25,7 @@ Pun opis (najviše 4000 znakova):
 • Игра памти 10 најбољих резултата
 • На крају те у тврђави чека краљ са ватрометом
 
-Без реклама, без куповине у игри, без интернета. Игра не прикупља никакве податке. Цела игра је на српском језику (ћирилица).
+Без куповине у игри и без налога. На дну екрана је рекламни банер прилагођен деци, без персонализованих реклама. Цела игра је на српском језику (ћирилица).
 
 
 ENGLESKI (en-US) – prevod, nije obavezan
@@ -52,7 +52,7 @@ FOR THE WHOLE FAMILY
 • The game keeps the 10 best scores
 • The King and fireworks wait for you at the end
 
-No ads, no in-app purchases, no internet needed. The game collects no data. The game is in Serbian (Cyrillic script).
+No in-app purchases and no accounts. A child-safe banner ad at the bottom of the screen, with no personalized ads. The game is in Serbian (Cyrillic script).
 
 
 OSTALO
