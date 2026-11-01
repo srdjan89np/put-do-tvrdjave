@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId 'rs.vojinvukasin.tvrdjava'
-        minSdk 21
+        minSdk 24
         targetSdk 36
         versionCode ciVersionCode
         versionName ciVersionName
