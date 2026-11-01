@@ -75,20 +75,26 @@ Neprijatelji su goblini, ježevi (na njih ne sme da se skoči) i mali zmajevi. S
 
 ## Instalacija na Android
 
-1. Na telefonu otvori link **Preuzmi APK** iznad. APK je u folderu [`apk/`](apk/), a novije verzije se pojavljuju i u [Releases](https://github.com/srdjan89np/put-do-tvrdjave/releases) kad GitHub Actions radi.
+1. Na telefonu otvori link **Preuzmi APK** iznad. APK je u folderu [`apk/`](apk/), a svaka nova verzija je i u [Releases](https://github.com/srdjan89np/put-do-tvrdjave/releases).
 2. Otvori preuzeti fajl `put-do-tvrdjave.apk`.
 3. Ako telefon pita, dozvoli instaliranje aplikacija iz ovog izvora.
-4. Igrica se zove **„Пут до тврђаве“** i radi i bez interneta.
+4. Igrica se zove **„Пут до тврђаве“**. Igra radi i bez interneta, samo se tada ne prikazuje reklamni baner.
 
 Nova verzija se instalira preko stare, rezultati se ne čuvaju između igara.
 
 ## Google Play
 
-Verzija 2.0 je spremna za Google Play: radi na Androidu 7.0 i novijim, cilja Android 16 (API 36), dugme „nazad“ radi i na Androidu 16, fontovi su u aplikaciji, pa igra ne traži dozvolu za internet i ne prikuplja nikakve podatke.
+Trenutna verzija je **2.2** (broj verzije 14): radi na Androidu 7.0 i novijim, cilja Android 16 (API 36), a dugme „nazad“ radi i na Androidu 16. Fontovi su u aplikaciji.
+
+**Reklame (AdMob).** Na dnu ekrana je reklamni baner preko cele širine, a igra je iznad njega. Igru igraju i deca, pa su reklame podešene po pravilima Google Play-a za porodice: bez personalizacije, samo za sve uzraste (G), bez reklamnog ID-ja i bez Privacy Sandbox dozvola. Internet treba samo za baner.
+
+- [`android/admob.properties`](android/admob.properties): ID aplikacije i baner jedinice u AdMob-u (tu su i Google-ovi test ID-jevi za probu).
+- [`android/version.properties`](android/version.properties): broj verzije; povećaj ga pre svakog otpremanja na Play.
 
 - [`docs/play/`](docs/play/): ikonica za prodavnicu (512×512), velika slika (1024×500) i tekstovi za stranicu u prodavnici.
 - [Politika privatnosti](https://srdjan89np.github.io/put-do-tvrdjave/privatnost.html) (izvor: [`docs/privatnost.html`](docs/privatnost.html)): link za Google Play.
-- [`scripts/play/make_aab.py`](scripts/play/make_aab.py): pravi Android App Bundle (`.aab`) bez Android SDK-a, uz [bundletool](https://github.com/google/bundletool/releases). Ključ za otpremanje na Play se ne čuva u repozitorijumu.
+- `.aab` za Play pravi GitHub Actions (vidi ispod). Pre otpremanja ga treba potpisati ključem za otpremanje, koji se ne čuva u repozitorijumu.
+- [`scripts/play/make_aab.py`](scripts/play/make_aab.py): stari način pravljenja `.aab` bez Android SDK-a (za verzije bez reklama).
 
 ## Kako je napravljena
 
@@ -96,9 +102,9 @@ Cela igrica je jedan fajl, [`index.html`](index.html): HTML, CSS i JavaScript be
 
 ```
 index.html                  igrica
-apk/put-do-tvrdjave.apk     gotov Android APK
+apk/put-do-tvrdjave.apk     gotov Android APK (sa reklamnim banerom)
 icon.png                    ikonica
-android/                    Android aplikacija (WebView koji otvara index.html)
+android/                    Android aplikacija (WebView koji otvara index.html + AdMob baner)
 scripts/fetch-fonts.sh      preuzima fontove Rubik i Nunito (ćirilica) za rad bez interneta
 scripts/make-icons.py       crta ikonicu u svim veličinama
 scripts/promo/              pravi promo klip docs/promo.mp4 iz prave igre
@@ -109,7 +115,8 @@ scripts/promo/              pravi promo klip docs/promo.mp4 iz prave igre
 
 Na svaki `push` na granu `main` GitHub Actions:
 
-- pravi novi **APK** i objavljuje ga u [Releases](https://github.com/srdjan89np/put-do-tvrdjave/releases) (`android.yml`);
+- pravi novi **APK** i **AAB** i objavljuje APK u [Releases](https://github.com/srdjan89np/put-do-tvrdjave/releases) (`android.yml`);
+- oba gotova fajla čuva i na grani [`builds`](https://github.com/srdjan89np/put-do-tvrdjave/tree/builds);
 - objavljuje igricu na **GitHub Pages** (`pages.yml`).
 
 ### Lokalno pokretanje
@@ -120,13 +127,14 @@ Otvori `index.html` u pregledaču. Za fontove bez interneta prvo pokreni:
 bash scripts/fetch-fonts.sh fonts
 ```
 
-APK lokalno (potrebni su Android SDK i Java 17):
+APK i AAB lokalno (potrebni su Android SDK i Java 17):
 
 ```bash
 mkdir -p android/app/src/main/assets
 cp index.html icon.png android/app/src/main/assets/
 bash scripts/fetch-fonts.sh android/app/src/main/assets/fonts
-cd android && gradle assembleRelease
+sed -i '/fonts.googleapis.com\|fonts.gstatic.com/d' android/app/src/main/assets/index.html
+cd android && gradle assembleRelease bundleRelease
 ```
 
 ### Podešavanja za testiranje
