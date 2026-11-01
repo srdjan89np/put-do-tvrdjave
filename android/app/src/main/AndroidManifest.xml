@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Internet treba samo za reklamni baner. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Igra je i za decu: reklamni ID se ne koristi. -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
 
     <application
         android:allowBackup="true"
@@ -8,10 +14,14 @@
         android:theme="@style/AppTheme"
         android:hardwareAccelerated="true">
 
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|keyboard|navigation|uiMode"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|keyboard|navigation|uiMode|smallestScreenSize"
             android:screenOrientation="fullSensor"
             android:launchMode="singleTask">
             <intent-filter>

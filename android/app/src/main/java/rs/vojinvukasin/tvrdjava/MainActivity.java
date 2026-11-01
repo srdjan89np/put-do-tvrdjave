@@ -2,9 +2,12 @@ package rs.vojinvukasin.tvrdjava;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
@@ -13,12 +16,25 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.window.OnBackInvokedDispatcher;
 
-/** Igrica "Put do Kraljeve tvrđave" u WebView-u, cela na ekranu. */
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.RequestConfiguration;
+
+/**
+ * Igrica "Put do Kraljeve tvrđave" u WebView-u, sa reklamnim banerom (AdMob) na dnu ekrana.
+ * Igru igraju i deca, pa se sve reklame traže kao reklame za decu (bez personalizacije, ocena G).
+ */
 public class MainActivity extends Activity {
 
     private WebView web;
+    private FrameLayout adBox;
+    private AdView adView;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -47,7 +63,17 @@ public class MainActivity extends Activity {
         web.setOverScrollMode(View.OVER_SCROLL_NEVER);
         web.setWebViewClient(new WebViewClient());
         web.setWebChromeClient(new WebChromeClient());
-        setContentView(web);
+
+        // Igra gore, baner dole.
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(Color.parseColor("#131833"));
+        root.addView(web, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
+        adBox = new FrameLayout(this);
+        root.addView(adBox, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        setContentView(root);
         hideSystemBars();
 
         if (savedInstanceState != null) {
@@ -61,6 +87,47 @@ public class MainActivity extends Activity {
             getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
                     OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::handleBack);
         }
+
+        setUpAds();
+    }
+
+    /** Reklame za decu: bez personalizacije i samo sadržaj za sve uzraste (G). */
+    private void setUpAds() {
+        RequestConfiguration config = MobileAds.getRequestConfiguration().toBuilder()
+                .setTagForChildDirectedTreatment(RequestConfiguration.TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE)
+                .setTagForUnderAgeOfConsent(RequestConfiguration.TAG_FOR_UNDER_AGE_OF_CONSENT_TRUE)
+                .setMaxAdContentRating(RequestConfiguration.MAX_AD_CONTENT_RATING_G)
+                .build();
+        MobileAds.setRequestConfiguration(config);
+        new Thread(() -> MobileAds.initialize(this, status ->
+                runOnUiThread(() -> adBox.post(this::loadBanner)))).start();
+    }
+
+    /** Prilagodljivi baner preko cele širine ekrana. */
+    private void loadBanner() {
+        if (isFinishing()) return;
+        if (adView != null) {
+            adBox.removeView(adView);
+            adView.destroy();
+        }
+        adView = new AdView(this);
+        adView.setAdUnitId(BuildConfig.ADMOB_BANNER_ID);
+        DisplayMetrics dm = getResources().getDisplayMetrics();
+        int widthPx = adBox.getWidth() > 0 ? adBox.getWidth() : dm.widthPixels;
+        int widthDp = (int) (widthPx / dm.density);
+        adView.setAdSize(AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, widthDp));
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+        lp.gravity = Gravity.CENTER_HORIZONTAL;
+        adBox.addView(adView, lp);
+        adView.loadAd(new AdRequest.Builder().build());
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        // Telefon je okrenut: baner se pravi ponovo za novu širinu.
+        if (adView != null) adBox.post(this::loadBanner);
     }
 
     @SuppressWarnings("deprecation")
@@ -88,6 +155,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onPause() {
+        if (adView != null) adView.pause();
         super.onPause();
         web.onPause();
     }
@@ -96,6 +164,7 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         web.onResume();
+        if (adView != null) adView.resume();
         hideSystemBars();
     }
 
@@ -120,6 +189,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        if (adView != null) adView.destroy();
         if (web != null) web.destroy();
         super.onDestroy();
     }

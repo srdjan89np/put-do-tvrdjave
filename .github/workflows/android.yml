@@ -34,6 +34,8 @@ jobs:
           mkdir -p "$ASSETS"
           cp index.html icon.png "$ASSETS/"
           bash scripts/fetch-fonts.sh "$ASSETS/fonts"
+          # U aplikaciji su fontovi lokalni: bez učitavanja Google Fonts.
+          sed -i '/fonts.googleapis.com\|fonts.gstatic.com/d' "$ASSETS/index.html"
 
       - name: Pripremi ključ za potpis (ako postoji)
         env:
@@ -46,28 +48,43 @@ jobs:
             echo "Nema ključa u tajnama, APK se potpisuje debug ključem."
           fi
 
-      - name: Napravi APK
+      - name: Napravi APK i AAB
         working-directory: android
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          gradle assembleRelease --no-daemon \
-            -PversionCode=${{ github.run_number }} \
-            -PversionName=1.0.${{ github.run_number }}
+          gradle assembleRelease bundleRelease --no-daemon
           cp app/build/outputs/apk/release/app-release.apk ../put-do-tvrdjave.apk
+          cp app/build/outputs/bundle/release/app-release.aab ../put-do-tvrdjave.aab
+          echo "VERSION_NAME=$(grep versionName version.properties | cut -d= -f2)" >> "$GITHUB_ENV"
+
+      - name: Sačuvaj gotove fajlove na grani "builds"
+        run: |
+          mkdir -p "$RUNNER_TEMP/out"
+          cp put-do-tvrdjave.apk put-do-tvrdjave.aab "$RUNNER_TEMP/out/"
+          cd "$RUNNER_TEMP/out"
+          git init -q -b builds
+          git config user.name "github-actions[bot]"
+          git config user.email "41898+github-actions[bot]@users.noreply.github.com"
+          echo "Napravljeno iz ${GITHUB_SHA} (verzija ${VERSION_NAME})." > README.md
+          git add -A
+          git commit -q -m "Build ${VERSION_NAME} iz ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" builds
 
       - uses: actions/upload-artifact@v4
         with:
           name: put-do-tvrdjave-apk
-          path: put-do-tvrdjave.apk
+          path: |
+            put-do-tvrdjave.apk
+            put-do-tvrdjave.aab
 
       - name: Objavi u Releases
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.${{ github.run_number }}
-          name: Пут до тврђаве 1.0.${{ github.run_number }}
+          tag_name: v${{ env.VERSION_NAME }}-${{ github.run_number }}
+          name: Пут до тврђаве ${{ env.VERSION_NAME }} (${{ github.run_number }})
           body: |
             Android APK igrice „Пут до Краљеве тврђаве“.
             Preuzmi `put-do-tvrdjave.apk` i instaliraj ga na telefon.
