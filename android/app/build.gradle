@@ -65,5 +65,5 @@ android {
 
 dependencies {
     // Google Mobile Ads (AdMob) za reklamni baner.
-    implementation 'com.google.android.gms:play-services-ads:23.6.0'
+    implementation 'com.google.android.gms:play-services-ads:25.5.0'
 }
