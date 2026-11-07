@@ -167,7 +167,7 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
   <header class="hud">
     <div class="pls" id="hudP"></div>
     <div class="mid">
-      <button id="btnPause" aria-label="Пауза">❚❚</button>
+      <button id="btnPause" aria-label="Пауза" hidden>❚❚</button>
       <button id="btnSound" aria-label="Звук">♪</button>
     </div>
   </header>
@@ -838,7 +838,8 @@ function choosePlayers(sel,focusIdx){
     focus:focusIdx,alt:{label:'Nazad',fn:()=>showTitle()}});
 }
 function togglePause(){
-  if(state==='play'){state='paused';showCard({kick:'Pauza',title:'Odmor',color:P().c.jacket,heroes:[P().c],info:'Igra stoji dok ne nastaviš.',btn:'Nastavi',go:()=>{hideCard();state='play';}});}
+  if(state==='play'){state='paused';showCard({kick:'Pauza',title:'Odmor',color:P().c.jacket,heroes:[P().c],info:'Igra stoji dok ne nastaviš.',btn:'Nastavi',go:()=>{hideCard();state='play';},
+    alt:{label:'Izađi',fn:()=>showTitle()}});}
   else if(state==='paused'){goBtn.click();}
 }
 
@@ -926,7 +927,10 @@ function buildHud(){
     el.innerHTML='<div class="top"><b></b><span class="hearts"></span></div><div class="stats"><span class="lv"></span><span class="coin"></span><span class="sc"></span></div>';
     el.querySelector('b').textContent=cyr(p.c.name);hudP.appendChild(el);hudEls.push(el);});
 }
+const btnPause=document.getElementById('btnPause');
 function updHud(){
+  const showPause=!!players&&(state==='play'||state==='paused');
+  if(btnPause.hidden===showPause)btnPause.hidden=!showPause;
   if(!players){if(hudKey==='none')return;hudKey='none';setShootBtn(false);buildHud();return;}
   if(hudEls.length!==players.length||hudKey==='none'||hudKey==='')buildHud();
   const k=players.map(p=>[p.lives,p.coins,p.score,p.level,p.done,p.weapon,p.armor,p.horse].join()).join('|')+cur+state;

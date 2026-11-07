@@ -38,9 +38,9 @@
 | Kretanje | ◀ ▶ | ← → ili A D |
 | Skok | СКОК | ↑, razmak, W ili Z |
 | Mač / praćka | УДАРАЈ (sa praćkom ПУЦАЈ) | X, F ili Shift |
-| Pauza | ❚❚ gore | P ili Esc |
+| Pauza | ❚❚ gore (vidi se samo u igri) | P ili Esc |
 
-Na Android telefonu dugme **nazad** pauzira igru, a drugi pritisak izlazi iz aplikacije.
+Na pauzi je i link **Изађи**, koji prekida igru i vraća na glavni meni. Na Android telefonu dugme **nazad** pauzira igru, a drugi pritisak izlazi iz aplikacije.
 
 ### Mač i sanduci
 
@@ -84,7 +84,7 @@ Nova verzija se instalira preko stare, rezultati se ne čuvaju između igara.
 
 ## Google Play
 
-Trenutna verzija je **2.4** (broj verzije 16, Google Mobile Ads SDK 25.5.0, androidx.activity 1.10.1): radi na Androidu 7.0 i novijim, cilja Android 16 (API 36), a dugme „nazad“ radi i na Androidu 16. Fontovi su u aplikaciji.
+Trenutna verzija je **2.5** (broj verzije 17, Google Mobile Ads SDK 25.5.0, androidx.activity 1.10.1): radi na Androidu 7.0 i novijim, cilja Android 16 (API 36), a dugme „nazad“ radi i na Androidu 16. Fontovi su u aplikaciji.
 
 **Reklame (AdMob).** Na dnu ekrana je reklamni baner preko cele širine, a igra je iznad njega. Igru igraju i deca, pa su reklame podešene po pravilima Google Play-a za porodice: bez personalizacije, samo za sve uzraste (G), bez reklamnog ID-ja i bez Privacy Sandbox dozvola. Internet treba samo za baner.
 
