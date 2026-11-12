@@ -106,6 +106,14 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
 .hs li .sc{font-size:17px}
 .hs li.new{border-color:var(--gold);background:var(--panel-2)}
 .acts:not(:has(:not([hidden]))){display:none}
+.stars{display:flex;gap:6px;justify-content:center;font-size:42px;line-height:1;color:var(--gold);text-shadow:0 3px 0 #b58300}
+.stars span{animation:starIn .45s cubic-bezier(.2,1.6,.4,1) both}
+.stars span.off{color:#343b68;text-shadow:none}
+@keyframes starIn{from{transform:scale(0) rotate(-40deg);opacity:0}to{transform:none;opacity:1}}
+.links{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.links button{border:2px solid var(--panel-2);background:var(--panel);color:var(--ink);border-radius:999px;padding:7px 14px;font:800 14px var(--body);cursor:pointer}
+.links button:hover,.links button:focus-visible{border-color:var(--gold);outline:none}
+.links button:first-child{color:var(--gold)}
 .hs-title{margin:2px 0 -2px;font-size:12px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
 
 /* Touch pad */
@@ -148,6 +156,8 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
   .card button.go{padding:8px 26px;font-size:19px}
   .hs{grid-template-columns:1fr 1fr;gap:4px 8px}
   .hs li{padding:4px 8px}
+  .stars{font-size:28px}
+  .links button{padding:4px 12px;font-size:13px}
   .modal .pad{visibility:hidden}
   .pad{display:contents}
   .pad .dirs{grid-row:1;align-self:end;display:flex;flex-direction:column;align-items:stretch;gap:10px;padding-bottom:6px}
@@ -159,7 +169,7 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
   .pad .shoot.sword{font-size:15px}
 }
 @media (hover:hover) and (pointer:fine){.pad,.pad .dirs{display:none!important}}
-@media (prefers-reduced-motion:reduce){.pl{transition:none}}
+@media (prefers-reduced-motion:reduce){.pl{transition:none}.stars span{animation:none}}
 </style>
 </head>
 <body>
@@ -178,12 +188,14 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
       <div class="kicker" id="cKick"></div>
       <div class="pors" id="cPors"></div>
       <h2 id="cTitle"></h2>
+      <div class="stars" id="cStars" hidden></div>
       <p class="info" id="cInfo"></p>
       <div class="rows" id="cRows"></div>
       <p class="hs-title" id="cHsT" hidden></p>
       <ol class="hs" id="cHs" hidden></ol>
       <div class="opts" id="cOpts"></div>
       <p class="hint" id="cHint"></p>
+      <div class="links" id="cLinks" hidden></div>
       <div class="acts">
         <button class="go" id="cGo">Крени!</button>
         <button class="alt" id="cAlt" hidden></button>
@@ -231,9 +243,27 @@ HEROES[0].acc='Vojina';HEROES[1].acc='Vukašina';
 // muški/ženski oblik reči: gw(c,'izgubio','izgubila')
 function gw(c,m,f){return c&&c.f?f:m;}
 
+/* ---------- Jezik, kasica i kostimi (čuvaju se na uređaju) ---------- */
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+let lang=store.get('ptv-jezik','sr')==='en'?'en':'sr';
+// tr('srpski latinicom','English'): srpski se na ekranu prikazuje ćirilicom
+const tr=(s,e)=>lang==='en'?e:s;
+let bank=Math.max(0,store.get('ptv-kasica',0)|0);
+function addBank(n){bank=Math.max(0,bank+n);store.set('ptv-kasica',bank);}
+const COSTUMES=[
+  {id:'pirat',slot:'hat',sr:'Gusarski šešir',en:'Pirate hat',price:150},
+  {id:'stit',slot:'shield',sr:'Štit sa lavom',en:'Lion shield',price:250},
+  {id:'kruna',slot:'hat',sr:'Kruna',en:'Crown',price:400},
+  {id:'plast',slot:'cape',sr:'Zlatni plašt',en:'Golden cape',price:600}
+];
+let owned=store.get('ptv-kostimi-kupljeni',[]);if(!Array.isArray(owned))owned=[];
+{const wear=store.get('ptv-kostimi',{})||{};
+ HEROES.forEach((c,i)=>{const w=wear[i]||{};c.cos={hat:owned.includes(w.hat)?w.hat:'',shield:!!w.shield&&owned.includes('stit'),cape:!!w.cape&&owned.includes('plast')};});}
+function saveWear(){const o={};HEROES.forEach((c,i)=>o[i]=c.cos);store.set('ptv-kostimi',o);}
+
 /* ---------- Levels ---------- */
 const LEVELS=[
-{name:'Zelena livada',wp:[44,7],theme:'dan',w:180,cp:88,goal:172,make(a){
+{name:'Zelena livada',en:'Green Meadow',wp:[44,7],theme:'dan',w:180,cp:88,goal:172,make(a){
   a.ground(0,15);a.ground(19,30);a.ground(34,60);a.ground(64,100);a.ground(105,140);a.ground(144,179);
   a.deco('tent',1);a.deco('fire',4);a.deco('sign',6);
   a.stairs(8,2,1);a.stairs(10,2,-1);a.row(8,8,'oooo');
@@ -257,7 +287,7 @@ const LEVELS=[
   a.row(149,9,'oooo');a.en('buba',152);
   a.stairs(158,7,1);
 }},
-{name:'Kristalna pećina',wp:[42,7],theme:'pecina',w:175,cp:82,goal:168,make(a){
+{name:'Kristalna pećina',en:'Crystal Cave',wp:[42,7],theme:'pecina',w:175,cp:82,goal:168,make(a){
   a.fill(0,174,0,0,STONE);
   a.ground(0,20);a.lava(21,25);a.row(22,9,'SS');a.row(22,8,'oo');
   a.ground(26,45);a.row(31,11,'^^^');a.row(30,8,'ooooo');a.en('jez',38);a.row(41,8,'KBK');
@@ -268,7 +298,7 @@ const LEVELS=[
   a.lava(131,140);a.mover(131,10,3,6,0,3.4);
   a.ground(141,174);a.en('buba',147);a.en('buba',151);a.stairs(155,4,1);a.stairs(159,4,-1);
 }},
-{name:'Iznad oblaka',wp:[17,7],theme:'nebo',w:175,cp:78,goal:168,make(a){
+{name:'Iznad oblaka',en:'Above the Clouds',wp:[17,7],theme:'nebo',w:175,cp:78,goal:168,make(a){
   a.ground(0,12);
   a.row(15,9,'CCCC');a.row(15,8,'oooo');
   a.mover(21,9,3,5,0,3);
@@ -289,7 +319,7 @@ const LEVELS=[
   a.row(139,5,'CCCCC');a.row(139,4,'ooooo');
   a.ground(146,174);a.stairs(155,5,1,CLOUD);
 }},
-{name:'Peščane dine',wp:[9,7],theme:'pustinja',w:180,cp:90,goal:172,make(a){
+{name:'Peščane dine',en:'Sand Dunes',wp:[9,7],theme:'pustinja',w:180,cp:90,goal:172,make(a){
   a.ground(0,22);a.row(8,8,'KBK');a.en('buba',16);
   a.ground(26,50);a.row(23,9,'ooo');
   a.stairs(30,3,1);a.stairs(33,3,-1);a.row(31,6,'ooo');
@@ -303,7 +333,7 @@ const LEVELS=[
   a.mover(141,10,3,3,0,2.8);
   a.ground(147,179);a.en('buba',152);a.stairs(158,6,1);
 }},
-{name:'Ledena planina',wp:[11,7],theme:'zima',w:180,cp:88,goal:172,make(a){
+{name:'Ledena planina',en:'Ice Mountain',boss:1,wp:[11,7],theme:'zima',w:180,cp:88,goal:172,make(a){
   a.ground(0,20);a.row(10,8,'KK');a.en('buba',15);
   a.ground(24,45);a.row(21,9,'ooo');
   a.stairs(30,2,1);a.stairs(32,2,-1);a.en('jez',38);a.row(41,11,'^^');
@@ -315,7 +345,7 @@ const LEVELS=[
   a.row(132,9,'S');
   a.ground(135,179);a.en('ptica',140,7);a.en('buba',146);a.stairs(152,5,1);a.stairs(157,5,-1);
 }},
-{name:'Vatrena tvrđava',wp:[35,7],theme:'tvrdjava',w:185,cp:92,goal:178,make(a){
+{name:'Vatrena tvrđava',en:'Fire Fortress',wp:[35,7],theme:'tvrdjava',w:185,cp:92,goal:178,make(a){
   a.ground(0,15,12,STONE);a.lava(16,19);a.row(16,9,'oooo');
   a.ground(20,40,12,STONE);a.saw(29,8,0,3,2.2);a.row(34,8,'SKS');a.en('buba',37);
   a.lava(41,49);a.mover(41,10,3,6,0,3);
@@ -327,7 +357,7 @@ const LEVELS=[
   a.lava(146,157);a.mover(147,11,3,0,-4,2.5);a.mover(152,7,3,0,4,2.5);
   a.ground(158,184,12,STONE);a.en('jez',163);a.stairs(166,5,1);
 }},
-{name:'Noćna šuma',wp:[9,7],theme:'noc',w:185,cp:92,goal:178,make(a){
+{name:'Noćna šuma',en:'Night Forest',wp:[9,7],theme:'noc',w:185,cp:92,goal:178,make(a){
   a.ground(0,18);a.en('buba',12);a.row(8,8,'BKB');
   a.ground(22,40);a.en('jez',28);a.en('buba',34);a.row(25,11,'^');a.row(19,9,'ooo');
   a.row(42,9,'S');a.row(42,8,'o');
@@ -341,7 +371,7 @@ const LEVELS=[
   a.row(152,9,'S');
   a.ground(155,184);a.en('buba',160);a.stairs(166,6,1);
 }},
-{name:'Duboka pećina',wp:[31,7],theme:'pecina',w:185,cp:95,goal:178,make(a){
+{name:'Duboka pećina',en:'Deep Cave',wp:[31,7],theme:'pecina',w:185,cp:95,goal:178,make(a){
   a.fill(0,184,0,0,STONE);
   a.ground(0,15);a.lava(16,22);a.row(18,9,'S');a.row(18,8,'o');
   a.ground(23,40);a.en('jez',28);a.en('jez',35);a.row(30,8,'KBK');a.row(38,11,'^^');
@@ -354,7 +384,7 @@ const LEVELS=[
   a.lava(146,156);a.mover(146,10,3,0,-4,2.4);a.mover(151,6,3,0,4,2.4);
   a.ground(157,184);a.en('jez',162);a.stairs(166,5,1);
 }},
-{name:'Oluja u oblacima',wp:[29,3],theme:'nebo',w:180,cp:85,goal:172,make(a){
+{name:'Oluja u oblacima',en:'Cloud Storm',wp:[29,3],theme:'nebo',w:180,cp:85,goal:172,make(a){
   a.ground(0,10);
   a.mover(12,10,2,3,0,2.4);
   a.row(19,9,'CCC');a.en('ptica',20,5);
@@ -374,7 +404,7 @@ const LEVELS=[
   a.row(148,7,'CCCC');a.row(148,6,'oooo');
   a.ground(154,179);a.en('jez',158);a.stairs(162,5,1,CLOUD);
 }},
-{name:'Kraljeva tvrđava',wp:[56,7],theme:'tvrdjava',w:195,cp:96,goal:188,make(a){
+{name:'Kraljeva tvrđava',en:'King\'s Castle',boss:2,wp:[56,7],theme:'tvrdjava',w:195,cp:96,goal:188,make(a){
   a.ground(0,14,12,STONE);a.lava(15,18);a.row(15,9,'oooo');
   a.ground(19,36,12,STONE);a.saw(24,8,0,3,2);a.saw(30,8,0,3,2,0.5);a.en('buba',34);
   a.lava(37,47);a.mover(37,10,3,4,0,2.6);a.row(44,9,'S');
@@ -405,6 +435,7 @@ function extraSection(a,x,theme,lv){
   a.ground(x+49,x+52,12,mat);a.row(x+49,9,'oooo');if(lv>=3)a.en('buba',x+51);
   gap(x+53,x+55);
 }
+const POWS=['magnet','nevid','dupli'],POWCOL={magnet:'#ff6b6b',nevid:'#9fd3ff',dupli:'#ffe27a'};
 function mkEnemy(type,tx,ty){
   const d={buba:[24,20,-0.9],jez:[26,20,-0.6],ptica:[26,18,0]}[type];
   const e={type,w:d[0],h:d[1],vx:d[2],vy:0,x:tx*T+(T-d[0])/2,y:(ty+1)*T-d[1],active:false,dead:false,deadT:0,t:0,face:-1,ground:false};
@@ -413,14 +444,14 @@ function mkEnemy(type,tx,ty){
 }
 function build(def){
   const L={name:def.name,theme:def.theme,w:def.w,g:Array.from({length:ROWS},()=>new Array(def.w).fill(AIR)),
-    enemies:[],coins:[],items:[],shots:[],deco:[],movers:[],saws:[],bumps:[],springs:{},cp:def.cp,goal:def.goal,t:0};
+    en:def.en,enemies:[],coins:[],items:[],pows:[],fire:[],boss:null,shots:[],deco:[],movers:[],saws:[],bumps:[],springs:{},cp:def.cp,goal:def.goal,t:0};
   const set=(x,y,t)=>{if(x>=0&&x<L.w&&y>=0&&y<ROWS)L.g[y][x]=t;};
   const MAP={B:BRICK,K:CRATE,S:STONE,C:CLOUD,'^':SPIKE,J:SPR};
   const a={
     ground(x1,x2,top=12,mat=TOP){for(let x=x1;x<=x2;x++){set(x,top,mat);for(let y=top+1;y<ROWS;y++)set(x,y,DIRT);}},
     lava(x1,x2){for(let x=x1;x<=x2;x++){set(x,12,LAVA);set(x,13,LAVA);}},
     fill(x1,x2,y1,y2,mat){for(let x=x1;x<=x2;x++)for(let y=y1;y<=y2;y++)set(x,y,mat);},
-    row(x,y,s){[...s].forEach((ch,i)=>{if(ch==='o')L.coins.push({x:(x+i)*T+T/2,y:y*T+T/2,got:false});else if(ch==='W')L.items.push({x:(x+i)*T+T/2,y:y*T+T/2,got:false});else if(MAP[ch]!==undefined)set(x+i,y,MAP[ch]);});},
+    row(x,y,s){[...s].forEach((ch,i)=>{if(ch==='o')L.coins.push({x:(x+i)*T+T/2,y:y*T+T/2,got:false,k:'c'+(x+i)+','+y});else if(ch==='W')L.items.push({x:(x+i)*T+T/2,y:y*T+T/2,got:false});else if(MAP[ch]!==undefined)set(x+i,y,MAP[ch]);});},
     stairs(x,n,dir=1,mat=STONE){for(let i=0;i<n;i++){const h=dir>0?i+1:n-i;for(let k=0;k<h;k++)set(x+i,11-k,mat);}},
     en(type,x,y=11){L.enemies.push(mkEnemy(type,x,y));},
     deco(type,x,w=1){L.deco.push({type,x,w});},
@@ -438,6 +469,19 @@ function build(def){
     for(const m of L.movers.concat(L.saws))if(m.bx>=X){m.bx+=D;m.x+=D;}
     extraSection(a,at,def.theme,LEVELS.indexOf(def));
   }
+  // arena za velikog zmaja ispred tvrđave
+  if(def.boss){
+    const x1=L.goal-14,x2=L.goal-1,mat=def.theme==='tvrdjava'?STONE:TOP;
+    for(let x=x1;x<=x2;x++){for(let y=0;y<12;y++)L.g[y][x]=AIR;L.g[12][x]=mat;L.g[13][x]=DIRT;}
+    const X1=x1*T,X2=(x2+1)*T,inA=x=>x>=X1-T&&x<X2;
+    L.enemies=L.enemies.filter(e=>!inA(e.bx!=null?e.bx:e.x));L.coins=L.coins.filter(c=>!inA(c.x));L.items=L.items.filter(c=>!inA(c.x));
+    L.saws=L.saws.filter(s=>!inA(s.bx));L.movers=L.movers.filter(m=>!(m.bx+m.w>X1-T&&m.bx<X2));
+    L.boss={x:X2-T*5,y:12*T-64,w:76,h:64,vx:0,vy:0,hp:3,max:3,face:-1,t:0,hitT:0,fireT:0,dead:false,deadT:0,active:false,lv:def.boss,x1:X1,x2:X2-T,wall:X2-2};
+  }
+  // novi pokloni: magnet, nevidljivost i dupli skok umesto po jednog kamena
+  {const li=LEVELS.indexOf(def),cs=L.coins.slice().sort((a,b)=>a.x-b.x);
+   [0.3,0.68].forEach((f,k)=>{const c=cs[Math.floor(cs.length*f)];if(!c)return;L.coins.splice(L.coins.indexOf(c),1);L.pows.push({x:c.x,y:c.y,kind:POWS[(Math.max(0,li)+k)%3],got:false});});}
+  L.totalGems=L.coins.length;for(const r of L.g)for(const t of r)if(t===CRATE)L.totalGems++;
   moveThings(L);L.movers.forEach(m=>{m.dx=0;m.dy=0;});
   return L;
 }
@@ -450,7 +494,7 @@ function moveThings(L){
 }
 
 /* ---------- State ---------- */
-let lvl=build(LEVELS[0]),hero=null,players=null,cur=0,state='title',cam=0,VW=640,scale=1,dpr=1,tick=0,particles=[],flagY=0,dieT=0;
+let lvl=build(LEVELS[0]),hero=null,players=null,cur=0,state='title',cam=0,VW=640,scale=1,dpr=1,tick=0,particles=[],flagY=0,dieT=0,easy=false;
 const K={l:false,r:false,j:false,jp:false,s:false,sp:false,a:false,ap:false};
 
 /* ---------- Audio ---------- */
@@ -470,7 +514,10 @@ const SFX={
   pop:[[180,0,.18,'triangle',60],[1400,.05,.12,'sine',700]],
   super:[[700,0,.08,'square',1400],[1050,.06,.12,'triangle',2100]],
   swing:[[300,0,.09,'sawtooth',900],[1200,.03,.06,'triangle',600]],
-  crack:[[500,0,.12,'square',120],[300,.08,.15,'triangle',80]]
+  crack:[[500,0,.12,'square',120],[300,.08,.15,'triangle',80]],
+  fire:[[220,0,.32,'sawtooth',70],[160,.05,.3,'triangle',60]],
+  roar:[[150,0,.45,'sawtooth',60],[110,.08,.45,'square',45]],
+  magic:[[880,0,.1,'sine',1760],[1320,.08,.22,'sine',2640]]
 };
 function sfx(n){
   if(!AC||muted)return;const t0=AC.currentTime;
@@ -491,7 +538,7 @@ function cyrPart(t){
     const r=low==='dž'?'џ':low==='lj'?'љ':low==='nj'?'њ':(CYR[low]||m);
     return up?r.toUpperCase():r;});
 }
-function cyr(t){if(t==null)return t;return String(t).split(/\{([^}]*)\}/).map((x,i)=>i%2?x:cyrPart(x)).join('');}
+function cyr(t){if(t==null)return t;if(lang==='en')return String(t).replace(/\{([^}]*)\}/g,'$1');return String(t).split(/\{([^}]*)\}/).map((x,i)=>i%2?x:cyrPart(x)).join('');}
 const tileAt=(cx,cy)=>(cy<0||cy>=ROWS)?AIR:(cx<0||cx>=lvl.w)?STONE:lvl.g[cy][cx];
 const solid=(cx,cy)=>SOLID[tileAt(cx,cy)]===1;
 const ov=(a,b,s=0)=>a.x+s<b.x+b.w&&a.x+a.w-s>b.x&&a.y+s<b.y+b.h&&a.y+a.h-s>b.y;
@@ -521,7 +568,7 @@ function collideY(o,isHero){
 }
 function bump(cx,cy){
   const t=tileAt(cx,cy);
-  if(t===CRATE){lvl.g[cy][cx]=USED;coinPop(cx*T+T/2,cy*T);addCoin();sfx('coin');}
+  if(t===CRATE){lvl.g[cy][cx]=USED;coinPop(cx*T+T/2,cy*T);addCoin('k'+cx+','+cy);sfx('coin');}
   else sfx('bump');
   if(t===CRATE||t===BRICK||t===USED){
     lvl.bumps.push({cx,cy,t:10});
@@ -538,7 +585,7 @@ function coinPop(x,y){particles.push({type:'coin',x,y,vx:0,vy:-7,life:26,max:26}
 /* ---------- Scoring ---------- */
 function P(){return players[cur];}
 function addScore(n){P().score+=n;}
-function addCoin(){const p=P();p.coins++;addScore(50);if(p.coins>=100){p.coins-=100;p.lives++;sfx('life');popText(hero.x,hero.y-10,'+1 život','#ff8aa5');}}
+function addCoin(key){const p=P();p.coins++;addScore(50);addBank(1);if(key&&p.gems)p.gems.add(key);if(p.coins>=100){p.coins-=100;p.lives++;sfx('life');popText(hero.x,hero.y-10,tr('+1 život','+1 life'),'#ff8aa5');}}
 function killEnemy(e,stomp){
   e.dead=true;e.deadT=0;e.squish=stomp&&e.type==='buba';
   addScore(100);popText(e.x+e.w/2,e.y,'+100');
@@ -563,14 +610,17 @@ function updateHero(){
   else{h.vx*=ice?0.965:h.ground?0.74:0.93;if(Math.abs(h.vx)<0.05)h.vx=0;}
   const mv=P().horse?5.4:MAXV;h.vx=Math.max(-mv,Math.min(mv,h.vx));
   if(K.jp){h.buf=8;K.jp=false;}else if(h.buf>0)h.buf--;
-  if(h.ground)h.coy=6;else if(h.coy>0)h.coy--;
+  if(h.ground){h.coy=6;h.dj=false;}else if(h.coy>0)h.coy--;
   if(h.buf>0&&h.coy>0){h.vy=P().horse?-15:JUMP;h.buf=0;h.coy=0;h.jumping=true;h.ground=false;h.ride=null;sfx('jump');}
+  else if(h.buf>0&&P().dbl&&!h.dj&&!h.ground){h.vy=P().horse?-13.5:JUMP*0.92;h.buf=0;h.dj=true;h.jumping=true;sfx('jump');
+    for(let i=0;i<10;i++)particles.push({type:'dot',x:h.x+h.w/2,y:h.y+h.h,vx:(Math.random()-.5)*3,vy:Math.random()*1.5,life:20,max:20,col:'#fff3b0',r:2.5});}
   if(h.jumping&&!K.j&&h.vy<-3.5){h.vy=-3.5;h.jumping=false;}
   if(h.vy>=0)h.jumping=false;
   h.vy=Math.min(h.vy+GRAV,13);
 
   h.x+=h.vx;if(h.x<0){h.x=0;h.vx=0;}
   if(collideX(h))h.vx=0;
+  if(lvl.boss&&!lvl.boss.dead&&h.x+h.w>lvl.boss.wall){h.x=lvl.boss.wall-h.w;h.vx=Math.min(0,h.vx);}
   const prevBottom=h.y+h.h;
   h.y+=h.vy;h.ground=false;h.ride=null;
   collideY(h,true);
@@ -583,18 +633,26 @@ function updateHero(){
   }
   if(h.ground)h.dist+=Math.abs(h.vx);else h.dist=0;
 
-  if(h.y>H+40)return die();
+  if(h.y>H+(easy?4:40)){
+    if(!easy)return die();
+    // lako: iz provalije i lave vitez odskoči kao sa opruge
+    h.y=H+4;h.vy=SPRING-2.5;h.jumping=false;h.dj=false;h.ride=null;h.inv=Math.max(h.inv,40);sfx('spring');
+    puff(h.x+h.w/2,H-6,14,'#9fd3ff');popText(h.x+h.w/2,H-60,tr('Hop!','Boing!'),'#9fd3ff');
+  }
   if(h.inv>0)h.inv--;
-  if(h.inv<=0&&touchHazard(h))return hurt();
+  {const q=P();if(q.mag>0)q.mag--;if(q.inv2>0){q.inv2--;if(tick%4===0)particles.push({type:'dot',x:h.x+Math.random()*h.w,y:h.y+Math.random()*h.h,vx:0,vy:-0.6,life:22,max:22,col:'#d6efff',r:2});}}
+  if(h.inv<=0&&!(P().inv2>0)&&touchHazard(h))return hurt();
   // sanduci se otvaraju i kad ih vitez dodirne sa strane ili stane na njih
   {const x0=Math.floor((h.x-2)/T),x1=Math.floor((h.x+h.w+1)/T),y0=Math.floor((h.y-2)/T),y1=Math.floor((h.y+h.h+1)/T);
-   for(let cy=y0;cy<=y1;cy++)for(let cx=x0;cx<=x1;cx++)if(tileAt(cx,cy)===CRATE){lvl.g[cy][cx]=USED;coinPop(cx*T+T/2,cy*T);addCoin();sfx('coin');puff(cx*T+T/2,cy*T+8,8,'#ffd75e');}}
+   for(let cy=y0;cy<=y1;cy++)for(let cx=x0;cx<=x1;cx++)if(tileAt(cx,cy)===CRATE){lvl.g[cy][cx]=USED;coinPop(cx*T+T/2,cy*T);addCoin('k'+cx+','+cy);sfx('coin');puff(cx*T+T/2,cy*T+8,8,'#ffd75e');}}
 
   const pl=P();
   for(const it of lvl.items){if(!it.got&&Math.abs(it.x-(h.x+h.w/2))<20&&Math.abs(it.y-(h.y+h.h/2))<24&&(pl.weapon||0)>=2){it.got=true;
-    if(!pl.armor){pl.armor=true;popText(it.x,it.y-10,'Oklop!','#cfe8ff');}else if(!pl.horse){pl.horse=true;setRide(true);popText(it.x,it.y-14,'Konj!','#ffe27a');}else{addScore(500);popText(it.x,it.y-10,'+500','#ffe27a');}
+    if(!pl.armor){pl.armor=true;popText(it.x,it.y-10,tr('Oklop!','Armor!'),'#cfe8ff');}else if(!pl.horse){pl.horse=true;setRide(true);popText(it.x,it.y-14,tr('Konj!','Horse!'),'#ffe27a');}else{addScore(500);popText(it.x,it.y-10,'+500','#ffe27a');}
     sfx('super');for(let i=0;i<20;i++){const an=i/20*Math.PI*2;particles.push({type:'dot',x:it.x,y:it.y,vx:Math.cos(an)*3.5,vy:Math.sin(an)*3.5,life:30,max:30,col:i%2?'#ffd75e':'#9fd3ff',r:3});}continue;}
-    if(!it.got&&Math.abs(it.x-(h.x+h.w/2))<20&&Math.abs(it.y-(h.y+h.h/2))<24){it.got=true;const had=pl.weapon||0;if(had>=2)addScore(500);pl.weapon=Math.min(2,had+1);sfx(had===1?'super':'life');popText(it.x,it.y-10,had>=2?'+500':had===1?'Super praćka!':'Praćka!',had===1?'#ffb3f0':'#ffe27a');if(had===1){for(let i=0;i<24;i++){const an=i/24*Math.PI*2;particles.push({type:'dot',x:h.x+h.w/2,y:h.y+h.h/2,vx:Math.cos(an)*4,vy:Math.sin(an)*4,life:35,max:35,col:i%2?'#ffd75e':'#ff7ad9',r:3});}}puff(it.x,it.y,10,'#ffe27a');}}
+    if(!it.got&&Math.abs(it.x-(h.x+h.w/2))<20&&Math.abs(it.y-(h.y+h.h/2))<24){it.got=true;const had=pl.weapon||0;if(had>=2)addScore(500);pl.weapon=Math.min(2,had+1);sfx(had===1?'super':'life');popText(it.x,it.y-10,had>=2?'+500':had===1?tr('Super praćka!','Super slingshot!'):tr('Praćka!','Slingshot!'),had===1?'#ffb3f0':'#ffe27a');if(had===1){for(let i=0;i<24;i++){const an=i/24*Math.PI*2;particles.push({type:'dot',x:h.x+h.w/2,y:h.y+h.h/2,vx:Math.cos(an)*4,vy:Math.sin(an)*4,life:35,max:35,col:i%2?'#ffd75e':'#ff7ad9',r:3});}}puff(it.x,it.y,10,'#ffe27a');}}
+  for(const pw of lvl.pows){if(!pw.got&&Math.abs(pw.x-(h.x+h.w/2))<20&&Math.abs(pw.y-(h.y+h.h/2))<24){pw.got=true;givePow(pw);}}
+  if(pl.mag>0)for(const c of lvl.coins){if(c.got)continue;const dx=h.x+h.w/2-c.x,dy=h.y+h.h/2-c.y,d=Math.hypot(dx,dy);if(d<190&&d>0){const s=Math.min(d,8)/d;c.x+=dx*s;c.y+=dy*s;}}
   if(h.cool>0)h.cool--;
   // udarac mačem
   if(h.atkCool>0)h.atkCool--;
@@ -604,16 +662,19 @@ function updateHero(){
     if(h.atk<=11&&h.atk>=4){const reach=P().horse?40:30;
       const hb={x:h.face>0?h.x+h.w-4:h.x-reach+4,y:h.y-8,w:reach,h:h.h+12};
       for(const e of lvl.enemies){if(e.dead||e.gone||!e.active)continue;if(ov(hb,e)){killEnemy(e,false);puff(e.x+e.w/2,e.y+e.h/2,8,'#e9ecf2');}}
+      if(lvl.boss&&ov(hb,lvl.boss))hitBoss();
+      for(const f of lvl.fire)if(ov(hb,{x:f.x-7,y:f.y-7,w:14,h:14})){f.life=0;puff(f.x,f.y,8,'#ffd23a');}
       const x0=Math.floor(hb.x/T),x1=Math.floor((hb.x+hb.w)/T),y0=Math.floor(hb.y/T),y1=Math.floor((hb.y+hb.h)/T);
-      for(let cy=y0;cy<=y1;cy++)for(let cx=x0;cx<=x1;cx++)if(tileAt(cx,cy)===CRATE){lvl.g[cy][cx]=USED;coinPop(cx*T+T/2,cy*T);addCoin();sfx('coin');}}}
+      for(let cy=y0;cy<=y1;cy++)for(let cx=x0;cx<=x1;cx++)if(tileAt(cx,cy)===CRATE){lvl.g[cy][cx]=USED;coinPop(cx*T+T/2,cy*T);addCoin('k'+cx+','+cy);sfx('coin');}}}
   if(K.sp){K.sp=false;
     if(pl.weapon===2&&h.cool<=0&&lvl.shots.length<9){h.cool=16;for(const vy0 of [-4.5,-1.5,1.2])lvl.shots.push({x:h.x+h.w/2+h.face*12,y:h.y+12,vx:h.face*8+h.vx*0.4,vy:vy0,life:120,sup:true});sfx('super');}
     else if(pl.weapon&&h.cool<=0&&lvl.shots.length<3){h.cool=14;lvl.shots.push({x:h.x+h.w/2+h.face*12,y:h.y+12,vx:h.face*7.5+h.vx*0.4,vy:-1.5,life:110});sfx('shoot');}}
-  for(const c of lvl.coins){if(!c.got&&Math.abs(c.x-(h.x+h.w/2))<17&&Math.abs(c.y-(h.y+h.h/2))<21){c.got=true;addCoin();sfx('coin');puff(c.x,c.y,5,'#ffe27a');}}
-  if(lvl.cp&&!pl.cp&&h.x>lvl.cp*T){pl.cp=lvl.cp;sfx('flag');popText(lvl.cp*T+16,9*T,'Kontrolna tačka!','#bff5c8');}
+  for(const c of lvl.coins){if(!c.got&&Math.abs(c.x-(h.x+h.w/2))<17&&Math.abs(c.y-(h.y+h.h/2))<21){c.got=true;addCoin(c.k);sfx('coin');puff(c.x,c.y,5,'#ffe27a');}}
+  if(lvl.cp&&!pl.cp&&h.x>lvl.cp*T){pl.cp=lvl.cp;sfx('flag');popText(lvl.cp*T+16,9*T,tr('Kontrolna tačka!','Checkpoint!'),'#bff5c8');}
   if(h.x+h.w>=lvl.goal*T+T/2-3)startWin();
 }
 function touchHazard(h){
+  if(easy)return false;
   const x0=Math.floor(h.x/T),x1=Math.floor((h.x+h.w-0.01)/T),y0=Math.floor(h.y/T),y1=Math.floor((h.y+h.h-0.01)/T);
   const hb={x:h.x+3,y:h.y+3,w:h.w-6,h:h.h-4};
   for(let cy=y0;cy<=y1;cy++)for(let cx=x0;cx<=x1;cx++){
@@ -638,6 +699,7 @@ function updateShots(){
     if(s.y>H+20||s.x<cam-40||s.x>cam+VW+40)s.life=0;
     for(const e of lvl.enemies){if(e.dead||e.gone||!e.active)continue;
       if(ov(box,e,s.sup?-6:-2)){killEnemy(e,false);if(!s.sup){s.life=0;break;}}}
+    {const b=lvl.boss;if(s.life>0&&b&&!b.dead&&b.active&&ov(box,b,-2)){hitBoss();s.life=0;puff(s.x,s.y,6,'#ffd23a');}}
     if(s.sup&&tick%2===0)particles.push({type:'dot',x:s.x,y:s.y,vx:(Math.random()-.5),vy:(Math.random()-.5),life:16,max:16,col:Math.random()<.5?'#ffd75e':'#ff7ad9',r:2});
   }
   lvl.shots=lvl.shots.filter(s=>s.life>0);
@@ -648,7 +710,7 @@ function updateEnemies(){
     if(e.gone)continue;
     if(e.dead){if(++e.deadT>30)e.gone=true;continue;}
     if(!e.active){if(e.x<cam+VW+T*2)e.active=true;else continue;}
-    e.t++;
+    e.t+=e.spd||1;
     if(e.type==='ptica'){
       const px=e.x;e.x=e.bx+Math.sin(e.t*0.02)*e.amp;e.y=e.by+Math.sin(e.t*0.07)*10;e.face=e.x>px?1:-1;
     }else{
@@ -659,12 +721,63 @@ function updateEnemies(){
       e.face=e.vx>0?1:-1;
       if(e.y>H+60){e.gone=true;continue;}
     }
-    if(ov(h,e,3)){
+    if(ov(h,e,3)&&!(P().inv2>0)){
       if((e.type!=='jez'||P().horse)&&h.vy>0&&h.y+h.h-e.y<14+h.vy){
         killEnemy(e,true);h.vy=K.j?-11:-7.5;h.jumping=K.j;
       }else if(h.inv<=0)return hurt();
     }
   }
+}
+
+/* ---------- Novi pokloni ---------- */
+function givePow(pw){
+  const pl=P(),c=pl.c;sfx('magic');
+  if(pw.kind==='magnet'){pl.mag=720;popText(pw.x,pw.y-10,tr('Magnet za kamenje!','Gem magnet!'),'#ff8a8a');}
+  else if(pw.kind==='nevid'){pl.inv2=480;popText(pw.x,pw.y-10,tr(gw(c,'Nevidljiv!','Nevidljiva!'),'Invisible!'),'#bfe7ff');}
+  else{pl.dbl=true;popText(pw.x,pw.y-10,tr('Dupli skok!','Double jump!'),'#ffe27a');}
+  for(let i=0;i<18;i++){const an=i/18*Math.PI*2;particles.push({type:'dot',x:pw.x,y:pw.y,vx:Math.cos(an)*3.2,vy:Math.sin(an)*3.2,life:28,max:28,col:POWCOL[pw.kind],r:3});}
+}
+
+/* ---------- Veliki zmaj (kraj 5. i 10. nivoa) ---------- */
+function hitBoss(){
+  const b=lvl.boss;if(!b||b.dead||!b.active||b.hitT>0)return;
+  b.hp--;b.hitT=50;sfx('roar');puff(b.x+b.w/2,b.y+b.h/3,14,'#ffd23a');addScore(200);popText(b.x+b.w/2,b.y-34,'+200');
+  if(b.hp<=0){b.dead=true;b.deadT=0;addScore(1000);lvl.fire=[];sfx('win');
+    popText(b.x+b.w/2,b.y-56,tr('Zmaj je pobeđen! +1000','Dragon defeated! +1000'),'#ffe27a');
+    for(let i=0;i<40;i++){const an=i/40*Math.PI*2;particles.push({type:'dot',x:b.x+b.w/2,y:b.y+b.h/2,vx:Math.cos(an)*5,vy:Math.sin(an)*5,life:45,max:45,col:i%3?'#ffd75e':'#d0413f',r:3.5});}}
+}
+function updateBoss(){
+  const b=lvl.boss;if(!b)return;
+  if(b.dead){b.deadT++;return;}
+  const h=hero;b.t++;
+  if(!b.active){if(h.x+h.w>b.x1-T*3)b.active=true;else return;}
+  if(b.hitT>0)b.hitT--;
+  if(b.fireT>0)b.fireT--;
+  const sp=(easy?0.45:0.85)*(b.lv===2?1.35:1),dx=(h.x+h.w/2)-(b.x+b.w/2);
+  if(b.hitT>32)b.vx=-Math.sign(dx||1)*3.2;
+  else if(b.fireT>0)b.vx*=0.85;
+  else{b.face=dx>0?1:-1;b.vx=Math.abs(dx)>40?b.face*sp:0;}
+  b.x=Math.max(b.x1,Math.min(b.x2-b.w,b.x+b.vx));
+  b.vy=Math.min(b.vy+GRAV*0.8,12);b.y+=b.vy;const gy=12*T-b.h;
+  if(b.y>=gy){b.y=gy;b.vy=0;if(!easy&&b.t%200===120)b.vy=-8.5;}
+  const every=easy?210:(b.lv===2?105:140);
+  if(b.t%every===0){b.fireT=36;const n=easy?1:b.lv===2?3:2;
+    for(let k=0;k<n;k++)lvl.fire.push({x:b.x+b.w/2+b.face*44,y:b.y+12,vx:b.face*(easy?2.8:3.8)*(1-k*0.22),vy:-1.8-k*1.6,life:170});sfx('fire');}
+  if(ov(h,b,6)&&!(P().inv2>0)){
+    if(h.vy>0&&h.y+h.h-b.y<18+h.vy){hitBoss();h.vy=K.j?-12:-9;h.jumping=K.j;}
+    else if(h.inv<=0){hurt();if(state==='play')h.vx=-b.face*5;}
+  }
+}
+function updateFire(){
+  const h=hero;
+  for(const f of lvl.fire){
+    f.life--;f.x+=f.vx;f.vy=Math.min(f.vy+0.13,7);f.y+=f.vy;
+    if(f.y>12*T-8){f.y=12*T-8;f.vy=-Math.abs(f.vy)*0.45;if(Math.abs(f.vy)<1)f.vy=0;}
+    if(tick%3===0)particles.push({type:'dot',x:f.x,y:f.y,vx:(Math.random()-.5),vy:-Math.random(),life:14,max:14,col:Math.random()<.5?'#ff7a1f':'#ffd23a',r:2});
+    if(f.x<cam-60||f.x>cam+VW+60)f.life=0;
+    if(f.life>0&&h.inv<=0&&!(P().inv2>0)&&Math.abs(f.x-(h.x+h.w/2))<h.w/2+6&&Math.abs(f.y-(h.y+h.h/2))<h.h/2+6){f.life=0;hurt();if(state!=='play')break;}
+  }
+  lvl.fire=lvl.fire.filter(f=>f.life>0);
 }
 
 /* ---------- Turn flow ---------- */
@@ -678,21 +791,21 @@ function hurt(){
   if(pl.horse){
     pl.horse=false;particles.push({type:'horse',x:h.x+h.w/2,y:h.y+h.h,vx:-h.face*5,vy:0,face:-h.face,life:70,max:70,c:pl.c});
     setRide(false);h.inv=100;h.vy=-8;h.jumping=false;h.ground=false;h.ride=null;
-    sfx('crack');popText(h.x+h.w/2,h.y-10,'Konj je pobegao!','#ffe27a');return;
+    sfx('crack');popText(h.x+h.w/2,h.y-10,tr('Konj je pobegao!','The horse ran away!'),'#ffe27a');return;
   }
   if(!pl.armor)return die();
   pl.armor=false;h.inv=100;h.vy=-9;h.jumping=false;h.ground=false;h.ride=null;
-  sfx('crack');popText(h.x+h.w/2,h.y-6,'Oklop je pukao!','#cfe8ff');
+  sfx('crack');popText(h.x+h.w/2,h.y-6,tr('Oklop je pukao!','The armor broke!'),'#cfe8ff');
   for(let i=0;i<14;i++)particles.push({type:'dot',x:h.x+h.w/2,y:h.y+14,vx:(Math.random()-.5)*5,vy:-Math.random()*4,life:30,max:30,col:i%2?'#ffd75e':'#e9ecf2',r:2.5});
 }
 function die(){
   if(state!=='play')return;
-  state='dying';dieT=0;hero.vy=-10;hero.vx=0;P().weapon=0;P().armor=false;P().horse=false;setRide(false);sfx('die');
+  state='dying';dieT=0;hero.vy=-10;hero.vx=0;P().weapon=0;P().armor=false;P().horse=false;P().mag=0;P().inv2=0;P().dbl=false;setRide(false);sfx('die');
 }
 function alive(i){return players[i].lives>0&&!players[i].done;}
 function pick(){const n=players.length;for(let k=1;k<=n;k++){const i=(cur+k)%n;if(alive(i))return i;}return -1;}
 function handleDeath(){
-  const prev=cur;P().lives--;
+  const prev=cur;P().lives--;P().lost=true;
   const n=pick();
   if(n<0)return gameOver();
   prepareTurn(n,players.length===1?'retry':n===prev?'again':'switch',prev);
@@ -728,7 +841,12 @@ function playMusic(){
   return total;
 }
 function finishLevel(){
-  const pl=P(),prev=cur;pl.level++;pl.cp=null;
+  const pl=P(),prev=cur;
+  // zvezdice: 1 za pređen nivo, 2 za bar 40% kamenja, 3 za bar 70% kamenja bez izgubljenog života
+  const ratio=lvl.totalGems?pl.gems.size/lvl.totalGems:1;
+  const st=1+(ratio>=0.4?1:0)+(ratio>=0.7&&!pl.lost?1:0);
+  pl.stars+=st;pl.lastStars=st;addScore(st*100);pl.gems=new Set();pl.lost=false;
+  pl.level++;pl.cp=null;
   if(pl.level>=LEVELS.length){
     pl.done=true;addScore(2000);
     return startEnding(()=>{const n=pick();if(n<0)return gameOver();prepareTurn(n,'done',prev);});
@@ -750,42 +868,45 @@ function updateEnding(){
   fw=fw.filter(p=>p.life>0);
   if(K.jp){K.jp=false;if(endT>40&&endT<430)endT=430;}
   if(endT>=520&&!endCard){endCard=true;const c=P().c;
-    showCard({kick:'Kraljeva tvrđava',title:gw(c,'Pravi vitez!','Prava vitežica!'),color:c.jacket,heroes:[c],info:'Kralj proglašava '+c.acc+' '+gw(c,'najhrabrijim vitezom','najhrabrijom vitežicom')+' kraljevstva. +2000 poena',btn:'Dalje',go:()=>{hideCard();endAfter();}});}
+    showCard({kick:tr('Kraljeva tvrđava',"King's Castle"),title:tr(gw(c,'Pravi vitez!','Prava vitežica!'),'A true knight!'),color:c.jacket,heroes:[c],stars:P().lastStars,
+      info:tr('Kralj proglašava '+c.acc+' '+gw(c,'najhrabrijim vitezom','najhrabrijom vitežicom')+' kraljevstva. +2000 poena','The King names '+c.name+' the bravest knight in the kingdom. +2000 points'),btn:tr('Dalje','Next'),go:()=>{hideCard();endAfter();}});}
 }
 function prepareTurn(i,reason,prev){
   cur=i;const pl=P();
-  lvl=build(LEVELS[pl.level]);particles=[];spawnHero();state='card';
-  const pn=prev!=null?players[prev].c.name:'';
+  lvl=build(LEVELS[pl.level]);particles=[];spawnHero();state='card';pl.mag=0;pl.inv2=0;
+  if(easy){for(const e of lvl.enemies){e.vx*=0.6;e.spd=0.6;}for(const s of lvl.saws)s.per*=1.5;}
+  const pn=prev!=null?players[prev].c.name:'',nm=pl.c.name;
   const solo=players.length===1;
-  let kick='',title='Na redu: '+pl.c.name;
-  if(reason==='start'){kick=solo?'Igra za jednog':'Prvi igra';if(solo)title='Srećno, '+pl.c.voc+'!';}
+  let kick='',title=tr('Na redu: ','Your turn: ')+nm;
+  if(reason==='start'){kick=solo?tr('Igra za jednog','One player'):tr('Prvi igra','First up');if(solo)title=tr('Srećno, '+pl.c.voc+'!','Good luck, '+nm+'!');}
   const pc=prev!=null?players[prev].c:null;
-  if(reason==='retry'){kick=gw(pl.c,'Izgubio','Izgubila')+' si život';title='Probaj ponovo, '+pl.c.voc+'!';}
-  if(reason==='switch')kick=players[prev].lives>0?pn+' je '+gw(pc,'izgubio','izgubila')+' život':pn+' je '+gw(pc,'ispao','ispala')+' iz igre';
-  if(reason==='again'){kick=players.length===2?(()=>{const o=players[1-i];return o.done?o.c.name+' je već '+gw(o.c,'prešao','prešla')+' sve nivoe':o.c.name+' više nema života';})():'Ostali su završili igru';title=pl.c.name+' nastavlja!';}
-  if(reason==='level'){kick='Nivo pređen!';title='Bravo, '+pl.c.voc+'!';}
-  if(reason==='done')kick=pn+' je '+gw(pc,'prešao','prešla')+' sve nivoe!';
-  const L=LEVELS[pl.level];
-  showCard({kick,title,color:pl.c.jacket,heroes:[pl.c],
-    info:`Nivo ${pl.level+1} od ${LEVELS.length}: ${L.name}`+(L.theme==='zima'?' (pazi, led je klizav!)':''),
-    hint:'♥ '+pl.lives+(pl.lives===1?' život':' života')+(pl.cp?' · krećeš od kontrolne tačke':'')+(!solo&&reason==='start'?' · redosled: '+players.map(p=>p.c.name).join(' → '):''),
-    btn:'Kreni!',go:()=>{hideCard();state='play';}});
+  if(reason==='retry'){kick=tr(gw(pl.c,'Izgubio','Izgubila')+' si život','You lost a life');title=tr('Probaj ponovo, '+pl.c.voc+'!','Try again, '+nm+'!');}
+  if(reason==='switch')kick=players[prev].lives>0?tr(pn+' je '+gw(pc,'izgubio','izgubila')+' život',pn+' lost a life'):tr(pn+' je '+gw(pc,'ispao','ispala')+' iz igre',pn+' is out of the game');
+  if(reason==='again'){kick=players.length===2?(()=>{const o=players[1-i];return o.done?tr(o.c.name+' je već '+gw(o.c,'prešao','prešla')+' sve nivoe',o.c.name+' has finished all levels'):tr(o.c.name+' više nema života',o.c.name+' has no lives left');})():tr('Ostali su završili igru','The others have finished');title=tr(nm+' nastavlja!',nm+' keeps going!');}
+  if(reason==='level'){kick=tr('Nivo pređen!','Level complete!');title=tr('Bravo, '+pl.c.voc+'!','Well done, '+nm+'!');}
+  if(reason==='done')kick=tr(pn+' je '+gw(pc,'prešao','prešla')+' sve nivoe!',pn+' finished all levels!');
+  const LV=LEVELS[pl.level];
+  showCard({kick,title,color:pl.c.jacket,heroes:[pl.c],stars:reason==='level'?pl.lastStars:0,
+    info:tr(`Nivo ${pl.level+1} od ${LEVELS.length}: ${LV.name}`,`Level ${pl.level+1} of ${LEVELS.length}: ${LV.en}`)+(LV.theme==='zima'?tr(' (pazi, led je klizav!)',' (careful, the ice is slippery!)'):'')+(LV.boss?tr(' Na kraju te čeka veliki zmaj!',' A big dragon waits at the end!'):''),
+    hint:'♥ '+pl.lives+(pl.lives===1?tr(' život',' life'):tr(' života',' lives'))+(easy?tr(' · lako',' · easy'):'')+(pl.cp?tr(' · krećeš od kontrolne tačke',' · starting from the checkpoint'):'')+(!solo&&reason==='start'?tr(' · redosled: ',' · order: ')+players.map(p=>p.c.name).join(' → '):''),
+    btn:tr('Kreni!','Go!'),go:()=>{hideCard();state='play';}});
 }
 function gameOver(){
   state='over';
   const ps=players;const best=Math.max(...ps.map(p=>p.score));
   const winners=ps.filter(p=>p.score===best);
-  const rows=ps.map(p=>({c:p.c,line:p.done?gw(p.c,'Prešao','Prešla')+' sve nivoe':gw(p.c,'Stigao','Stigla')+' do nivoa '+(p.level+1),score:p.score}));
+  const rows=ps.map(p=>({c:p.c,line:p.done?tr(gw(p.c,'Prešao','Prešla')+' sve nivoe','Finished all levels'):tr(gw(p.c,'Stigao','Stigla')+' do nivoa '+(p.level+1),'Reached level '+(p.level+1)),stars:p.stars,score:p.score}));
   let title,color,heroes;
-  if(ps.length===1){const p=ps[0];title=p.done?'Pobeda, '+p.c.voc+'!':'Kraj igre';color=p.c.jacket;heroes=[p.c];}
-  else if(winners.length>1){title='Nerešeno!';color='#ffc62b';heroes=winners.map(p=>p.c);}
-  else{title=gw(winners[0].c,'Pobednik: ','Pobednica: ')+winners[0].c.name+'!';color=winners[0].c.jacket;heroes=[winners[0].c];}
+  if(ps.length===1){const p=ps[0];title=p.done?tr('Pobeda, '+p.c.voc+'!','Victory, '+p.c.name+'!'):tr('Kraj igre','Game over');color=p.c.jacket;heroes=[p.c];}
+  else if(winners.length>1){title=tr('Nerešeno!',"It's a tie!");color='#ffc62b';heroes=winners.map(p=>p.c);}
+  else{title=tr(gw(winners[0].c,'Pobednik: ','Pobednica: '),'Winner: ')+winners[0].c.name+'!';color=winners[0].c.jacket;heroes=[winners[0].c];}
   const ids=addScores(ps.map(p=>({h:p.idx,s:p.score,l:p.done?11:p.level+1})));
   ps.forEach(p=>{const e=getScores().find(x=>ids.includes(x.id)&&x.h===p.idx&&x.s===p.score);
-    const r=rows.find(r=>r.c===p.c);if(e&&r){const rk=scoreRank(e.id);r.line=rk===1?'Novi rekord!':rk+'. mesto na tabeli';}});
-  showCard({kick:ps.length===1&&ps[0].done?'Svih 10 nivoa pređeno':'Kraj igre',title,color,heroes,rows,
-    table:getScores(),tableNew:ids,tableTitle:'Najbolji rezultati',
-    btn:'Igraj ponovo',go:()=>startGame(setup),alt:{label:'Glavni meni',fn:()=>showTitle()}});
+    const r=rows.find(r=>r.c===p.c);if(e&&r){const rk=scoreRank(e.id);r.line=rk===1?tr('Novi rekord!','New record!'):tr(rk+'. mesto na tabeli','#'+rk+' on the scoreboard');}});
+  rows.forEach(r=>{if(r.stars)r.line+=' · ★ '+r.stars;});
+  showCard({kick:ps.length===1&&ps[0].done?tr('Svih 10 nivoa pređeno','All 10 levels complete'):tr('Kraj igre','Game over'),title,color,heroes,rows,
+    table:getScores(),tableNew:ids,tableTitle:tr('Najbolji rezultati','Best scores'),
+    btn:tr('Igraj ponovo','Play again'),go:()=>startGame(setup),alt:{label:tr('Glavni meni','Main menu'),fn:()=>showTitle()}});
   if(ids.some(id=>scoreRank(id)===1))sfx('life');
 }
 const TEST_HORSE=false; // true = igrač kreće na konju (za testiranje)
@@ -808,38 +929,87 @@ function addScores(list){
   return ids.filter(id=>hsMem.some(x=>x.id===id));
 }
 function scoreRank(id){return getScores().findIndex(x=>x.id===id)+1;}
-function bestLine(){const a=getScores();if(!a.length)return '';const b=a[0];return 'Rekord: '+b.s+' ('+HEROES[b.h].name+')';}
+function bestLine(){const a=getScores();if(!a.length)return '';const b=a[0];return tr('Rekord: ','Record: ')+b.s+' ('+HEROES[b.h].name+')';}
 function showScores(back){
   const a=getScores();
-  showCard({kick:'Tabela',title:'Najbolji rezultati',color:'#ffc62b',
-    info:a.length?'':'Još nema rezultata. Odigraj prvu igru!',
-    table:a,btn:'Nazad',go:back||(()=>showTitle())});
+  showCard({kick:tr('Tabela','Scoreboard'),title:tr('Najbolji rezultati','Best scores'),color:'#ffc62b',
+    info:a.length?'':tr('Još nema rezultata. Odigraj prvu igru!','No scores yet. Play your first game!'),
+    table:a,btn:tr('Nazad','Back'),go:back||(()=>showTitle())});
 }
 function startGame(s){
-  setup=s;
-  players=s.order.map(i=>({c:HEROES[i],idx:i,lives:3,score:0,coins:0,level:START_LEVEL,cp:null,done:false,weapon:TEST_HORSE?2:0,armor:TEST_HORSE,horse:TEST_HORSE}));
+  setup=s;easy=!!s.easy;
+  players=s.order.map(i=>({c:HEROES[i],idx:i,lives:easy?5:3,score:0,coins:0,level:START_LEVEL,cp:null,done:false,weapon:TEST_HORSE?2:0,armor:TEST_HORSE,horse:TEST_HORSE,
+    stars:0,lastStars:0,gems:new Set(),lost:false,mag:0,inv2:0,dbl:false}));
   hudKey='';cur=0;prepareTurn(0,'start',null);
 }
 function showTitle(){
   state='title';players=null;hudKey='';lvl=build(LEVELS[0]);cam=0;
-  showCard({kick:'Jedan ili više igrača · '+LEVELS.length+' nivoa',title:'Put do Kraljeve tvrđave',color:'#ffc62b',heroes:HEROES,
-    info:'Mali vitezovi kreću u avanturu. Skupljaj drago kamenje, skači na gobline, otvaraj sanduke i stigni do Kraljeve tvrđave.',
-    hint:matchMedia('(hover:hover) and (pointer:fine)').matches?'← → kretanje · ↑ ili razmak skok · {X} udaraj mačem (sa praćkom: pucaj) · {P} pauza':'◀ ▶ kretanje, SKOK skok, UDARAJ mačem (kad pokupiš praćku: PUCAJ). Najbolje se igra kad okreneš telefon.',
-    btn:'Izaberi igrače',go:()=>choosePlayers([]),
-    record:bestLine(),alt:{label:'Najbolji rezultati',fn:()=>showScores()}});
+  showCard({kick:tr('Jedan ili više igrača · ','One or more players · ')+LEVELS.length+tr(' nivoa',' levels'),title:tr('Put do Kraljeve tvrđave',"Road to the King's Castle"),color:'#ffc62b',heroes:HEROES,
+    info:tr('Mali vitezovi kreću u avanturu. Skupljaj drago kamenje, skači na gobline, otvaraj sanduke i stigni do Kraljeve tvrđave.',"Little knights set off on an adventure. Collect gems, jump on goblins, open chests and reach the King's Castle."),
+    hint:matchMedia('(hover:hover) and (pointer:fine)').matches?tr('← → kretanje · ↑ ili razmak skok · {X} udaraj mačem (sa praćkom: pucaj) · {P} pauza','← → move · ↑ or space jump · X sword (with a slingshot: shoot) · P pause'):tr('◀ ▶ kretanje, SKOK skok, UDARAJ mačem (kad pokupiš praćku: PUCAJ). Najbolje se igra kad okreneš telefon.','◀ ▶ move, JUMP to jump, HIT with the sword (with a slingshot: SHOOT). Best played with the phone sideways.'),
+    btn:tr('Izaberi igrače','Choose players'),go:()=>choosePlayers([]),
+    record:bestLine(),
+    links:[{label:'◆ '+bank+' · '+tr('Kostimi','Costumes'),fn:()=>showCostumes()},{label:tr('Najbolji rezultati','Best scores'),fn:()=>showScores()},{label:lang==='en'?'Српски':'{English}',fn:()=>setLang(lang==='en'?'sr':'en')}]});
 }
+function setLang(l){lang=l;store.set('ptv-jezik',l);applyStatic();hudKey='';showTitle();}
 let lastPick=[0];
 function choosePlayers(sel,focusIdx){
-  showCard({kick:'Jedan ili više igrača',title:'Ko igra?',color:'#ffc62b',
-    info:sel.length?(sel.length===1?'Igra '+HEROES[sel[0]].name+'.':'Igraju redom: '+sel.map(i=>HEROES[i].name).join(' → ')):'Dodirni od 1 do 4 igrača. Redom kojim ih biraš, tako igraju.',
-    options:HEROES.map((c,i)=>{const k=sel.indexOf(i);return {label:c.name,sub:k>=0?'igra '+(k+1)+'.':'dodirni za izbor',hero:c,color:c.jacket,badge:k>=0?k+1:0,sel:k>=0,
+  const ord=k=>lang==='en'?(k+1)+(['st','nd','rd'][k]||'th'):(k+1)+'.';
+  showCard({kick:tr('Jedan ili više igrača','One or more players'),title:tr('Ko igra?',"Who's playing?"),color:'#ffc62b',
+    info:sel.length?(sel.length===1?tr('Igra ','Playing: ')+HEROES[sel[0]].name+'.':tr('Igraju redom: ','Turn order: ')+sel.map(i=>HEROES[i].name).join(' → ')):tr('Dodirni od 1 do 4 igrača. Redom kojim ih biraš, tako igraju.','Tap 1 to 4 players. They take turns in the order you pick them.'),
+    options:HEROES.map((c,i)=>{const k=sel.indexOf(i);return {label:c.name,sub:k>=0?tr('igra '+ord(k),'plays '+ord(k)):tr('dodirni za izbor','tap to pick'),hero:c,color:c.jacket,badge:k>=0?k+1:0,sel:k>=0,
       fn:()=>{const n=sel.slice();const j=n.indexOf(i);if(j>=0)n.splice(j,1);else n.push(i);choosePlayers(n,i);}};}),
-    btn:sel.length?'Kreni!':'',go:sel.length?()=>{lastPick=sel.slice();startGame({order:sel.slice()});}:null,
-    focus:focusIdx,alt:{label:'Nazad',fn:()=>showTitle()}});
+    btn:sel.length?tr('Dalje','Next'):'',go:sel.length?()=>{lastPick=sel.slice();chooseDifficulty(sel.slice());}:null,
+    focus:focusIdx,alt:{label:tr('Nazad','Back'),fn:()=>showTitle()}});
+}
+let lastEasy=!!store.get('ptv-tezina',false);
+function chooseDifficulty(order){
+  const go=e=>{lastEasy=e;store.set('ptv-tezina',e);startGame({order,easy:e});};
+  showCard({kick:tr('Težina','Difficulty'),title:tr('Kako igramo?','How hard?'),color:'#ffc62b',
+    info:tr('Lako je za najmlađe: 5 života, šiljci, testere i lava ne bole, neprijatelji su sporiji, a iz provalije te izbaci opruga.','Easy is for the youngest: 5 lives, spikes, saws and lava do not hurt, enemies are slower, and a spring bounces you out of pits.'),
+    options:[{label:tr('Normalno','Normal'),sub:tr('3 života','3 lives'),color:'#ffc62b',sel:!lastEasy,fn:()=>go(false)},
+             {label:tr('Lako','Easy'),sub:tr('za najmlađe · 5 života','for the youngest · 5 lives'),color:'#7ddc6a',sel:lastEasy,fn:()=>go(true)}],
+    focus:lastEasy?1:0,alt:{label:tr('Nazad','Back'),fn:()=>choosePlayers(order)}});
+}
+function cosName(id){const k=COSTUMES.find(x=>x.id===id);return k?tr(k.sr,k.en):'';}
+function cosSummary(c){const a=[];if(c.cos.hat)a.push(cosName(c.cos.hat));if(c.cos.shield)a.push(cosName('stit'));if(c.cos.cape)a.push(cosName('plast'));return a.length?a.join(', '):tr('bez kostima','no costume');}
+function showCostumes(focus){
+  showCard({kick:tr('Kostimi','Costumes'),title:tr('Garderoba','Wardrobe'),color:'#ffc62b',
+    info:tr('U kasici imaš ◆ '+bank+'. Svaki dragi kamen iz igre ide u kasicu.','You have ◆ '+bank+' in your piggy bank. Every gem you collect goes in.'),
+    options:HEROES.map((c,i)=>({label:c.name,sub:cosSummary(c),hero:c,color:c.jacket,fn:()=>showHeroCostume(i)})),
+    focus,btn:tr('Nazad','Back'),go:()=>showTitle()});
+}
+function showHeroCostume(i,focus){
+  const c=HEROES[i];
+  const isOn=k=>k.slot==='hat'?c.cos.hat===k.id:!!c.cos[k.slot];
+  const opts=COSTUMES.map((k,j)=>{const own=owned.includes(k.id),on=own&&isOn(k);
+    const pv=Object.assign({},c.cos);if(k.slot==='hat')pv.hat=k.id;else pv[k.slot]=true;
+    return {label:tr(k.sr,k.en),
+      sub:own?(on?tr('✓ obučeno · dodirni da skineš','✓ wearing · tap to take off'):tr('dodirni da obučeš','tap to wear')):('◆ '+k.price+(bank>=k.price?tr(' · kupi',' · buy'):tr(' · nedostaje još '+(k.price-bank),' · need '+(k.price-bank)+' more'))),
+      hero:c,cos:pv,color:own?c.jacket:'#8a8fb0',sel:on,
+      fn:()=>{
+        if(!own){if(bank<k.price){sfx('bump');return;}addBank(-k.price);owned.push(k.id);store.set('ptv-kostimi-kupljeni',owned);sfx('life');}
+        else sfx('coin');
+        if(k.slot==='hat')c.cos.hat=(own&&c.cos.hat===k.id)?'':k.id;else c.cos[k.slot]=own?!c.cos[k.slot]:true;
+        saveWear();showHeroCostume(i,j);}};});
+  showCard({kick:tr('Kostimi · ◆ ','Costumes · ◆ ')+bank,title:c.name,color:c.jacket,heroes:[c],
+    info:tr('Kupljen kostim mogu da nose svi vitezovi.','Once bought, every knight can wear it.'),
+    options:opts,focus,btn:tr('Gotovo','Done'),go:()=>showCostumes(i)});
+}
+function ymd(d){return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function dailyGift(){
+  const d=new Date(),today=ymd(d),last=store.get('ptv-dan',null);
+  if(last&&last.d===today)return;
+  const y=new Date(d);y.setDate(d.getDate()-1);
+  const streak=last&&last.d===ymd(y)?Math.min(7,(last.s|0)+1):1,n=40+10*streak;
+  store.set('ptv-dan',{d:today,s:streak});
+  showCard({kick:tr('Dnevni poklon','Daily gift'),title:last?tr('Dobro došli nazad!','Welcome back!'):tr('Dobro došli!','Welcome!'),color:'#ffc62b',heroes:HEROES,
+    info:tr('Dobijaš ◆ '+n+' za kostime.','You get ◆ '+n+' for costumes.')+(streak>1?tr(' Dolaziš '+streak+'. dan zaredom, zato je poklon veći!',' Day '+streak+' in a row, so the gift is bigger!'):tr(' Dođi i sutra po novi poklon.',' Come back tomorrow for another one.')),
+    btn:tr('Uzmi poklon','Take the gift'),go:()=>{addBank(n);sfx('life');showTitle();}});
 }
 function togglePause(){
-  if(state==='play'){state='paused';showCard({kick:'Pauza',title:'Odmor',color:P().c.jacket,heroes:[P().c],info:'Igra stoji dok ne nastaviš.',btn:'Nastavi',go:()=>{hideCard();state='play';},
-    alt:{label:'Izađi',fn:()=>showTitle()}});}
+  if(state==='play'){state='paused';showCard({kick:tr('Pauza','Paused'),title:tr('Odmor','Break time'),color:P().c.jacket,heroes:[P().c],info:tr('Igra stoji dok ne nastaviš.','The game waits until you continue.'),btn:tr('Nastavi','Continue'),go:()=>{hideCard();state='play';},
+    alt:{label:tr('Izađi','Exit'),fn:()=>showTitle()}});}
   else if(state==='paused'){goBtn.click();}
 }
 
@@ -855,8 +1025,12 @@ function showCard(o){
   const t=document.getElementById('cTitle');t.textContent=o.title;t.style.setProperty('--hc',o.color||'#fff');
   const info=document.getElementById('cInfo');info.textContent=o.info||'';info.hidden=!o.info;
   const hint=document.getElementById('cHint');hint.textContent=o.hint||'';hint.hidden=!o.hint;
+  const stx=document.getElementById('cStars');stx.innerHTML='';stx.hidden=!o.stars;
+  for(let i=0;i<3&&o.stars;i++){const sp=document.createElement('span');sp.textContent='★';if(i>=o.stars)sp.className='off';sp.style.animationDelay=(i*0.22)+'s';stx.appendChild(sp);}
+  const lk=document.getElementById('cLinks');lk.innerHTML='';lk.hidden=!o.links;
+  (o.links||[]).forEach(l=>{const b=document.createElement('button');b.textContent=cyr(l.label);b.addEventListener('click',()=>{initAudio();l.fn();});lk.appendChild(b);});
   const pors=document.getElementById('cPors');pors.innerHTML='';pors.hidden=!(o.heroes&&o.heroes.length);
-  (o.heroes||[]).forEach(c=>{const pc=document.createElement('canvas');pc.width=112;pc.height=128;const g=pc.getContext('2d');g.scale(3,3);const pw=players&&state!=='over'?players.find(p=>p.c===c):null;drawHero(g,c,7,6,1,0,false,false,pw?pw.weapon:0,pw?pw.armor:false);pors.appendChild(pc);});
+  (o.heroes||[]).forEach(c=>{const pc=document.createElement('canvas');pc.width=112;pc.height=128;const g=pc.getContext('2d');g.scale(2.7,2.7);const pw=players&&state!=='over'?players.find(p=>p.c===c):null;drawHero(g,c,9.5,13,1,0,false,false,pw?pw.weapon:0,pw?pw.armor:false);pors.appendChild(pc);});
   if(o.record){info.textContent=(o.info?o.info+' ':'');const rb=document.createElement('b');rb.style.color='var(--gold)';rb.style.whiteSpace='nowrap';rb.textContent=cyr(o.record);info.appendChild(rb);}
   const hs=document.getElementById('cHs'),hsT=document.getElementById('cHsT');hs.innerHTML='';
   const tbl=o.table&&o.table.length?o.table:null;hs.hidden=!tbl;hsT.hidden=!(tbl&&o.tableTitle);hsT.textContent=cyr(o.tableTitle||'');
@@ -864,14 +1038,14 @@ function showCard(o){
     if(o.tableNew&&o.tableNew.includes(e.id))li.className='new';
     li.innerHTML='<span class="rk"></span><span class="nm"><b></b><small></small></span><span class="sc"></span>';
     li.querySelector('.rk').textContent=(i+1)+'.';li.querySelector('b').textContent=cyr(hc.name);
-    li.querySelector('small').textContent=cyr((e.l>LEVELS.length?gw(hc,'Prešao','Prešla')+' sve nivoe ★':'Nivo '+e.l)+' · '+e.d);
+    li.querySelector('small').textContent=cyr((e.l>LEVELS.length?tr(gw(hc,'Prešao','Prešla')+' sve nivoe ★','All levels ★'):tr('Nivo ','Level ')+e.l)+' · '+e.d);
     li.querySelector('.sc').textContent=e.s;hs.appendChild(li);});
   const rows=document.getElementById('cRows');rows.innerHTML='';rows.hidden=!o.rows;
   (o.rows||[]).forEach(r=>{const d=document.createElement('div');d.className='r';d.style.setProperty('--c',r.c.jacket);
     d.innerHTML='<b></b><span></span><em></em>';d.querySelector('b').textContent=cyr(r.c.name);d.querySelector('span').textContent=r.line;d.querySelector('em').textContent=r.score;rows.appendChild(d);});
   const opts=document.getElementById('cOpts');opts.innerHTML='';opts.hidden=!o.options;
   (o.options||[]).forEach(op=>{const b=document.createElement('button');b.className='opt';if(op.color)b.style.setProperty('--c',op.color);
-    if(op.hero){const pc=document.createElement('canvas');pc.width=96;pc.height=110;const g=pc.getContext('2d');g.scale(2.6,2.6);drawHero(g,op.hero,7,6,1,0,false,false);b.appendChild(pc);}
+    if(op.hero){const pc=document.createElement('canvas');pc.width=96;pc.height=110;const g=pc.getContext('2d');g.scale(2.3,2.3);drawHero(g,op.hero,9.8,13,1,0,false,false,0,false,null,op.cos);b.appendChild(pc);}
     if(op.badge){const bd=document.createElement('span');bd.className='badge';bd.textContent=op.badge;b.appendChild(bd);}
     if(op.sel)b.classList.add('sel');
     const lb=document.createElement('b');lb.textContent=op.label;b.appendChild(lb);
@@ -919,7 +1093,14 @@ sBtn.addEventListener('click',()=>{muted=!muted;sBtn.classList.toggle('off',mute
 /* ---------- HUD ---------- */
 const hudP=document.getElementById('hudP');let hudKey='',hudEls=[];
 const shootBtn=document.getElementById('btnShoot');
-function setShootBtn(gun){const t=gun?'ПУЦАЈ':'УДАРАЈ';if(shootBtn.textContent!==t){shootBtn.textContent=t;shootBtn.setAttribute('aria-label',gun?'Пуцај':'Ударај');}shootBtn.classList.toggle('sword',!gun);shootBtn.classList.remove('dim');}
+function setShootBtn(gun){const t=gun?tr('ПУЦАЈ','SHOOT'):tr('УДАРАЈ','HIT');if(shootBtn.textContent!==t){shootBtn.textContent=t;shootBtn.setAttribute('aria-label',gun?tr('Пуцај','Shoot'):tr('Ударај','Hit'));}shootBtn.classList.toggle('sword',!gun);shootBtn.classList.remove('dim');}
+function applyStatic(){
+  document.documentElement.lang=lang;document.title=tr('Пут до Краљеве тврђаве',"Road to the King's Castle");
+  const jb=document.querySelector('.pad .jump');jb.textContent=tr('СКОК','JUMP');jb.setAttribute('aria-label',tr('Скок','Jump'));
+  document.querySelector('.pad [data-k="l"]').setAttribute('aria-label',tr('Лево','Left'));document.querySelector('.pad [data-k="r"]').setAttribute('aria-label',tr('Десно','Right'));
+  document.getElementById('btnPause').setAttribute('aria-label',tr('Пауза','Pause'));document.getElementById('btnSound').setAttribute('aria-label',tr('Звук','Sound'));
+  shootBtn.textContent='';setShootBtn(!!(players&&P().weapon));
+}
 function buildHud(){
   hudP.innerHTML='';hudEls=[];
   const n=players?players.length:0;hudP.style.setProperty('--n',Math.max(n,1));hudP.classList.toggle('many',n>=3);
@@ -933,14 +1114,14 @@ function updHud(){
   if(btnPause.hidden===showPause)btnPause.hidden=!showPause;
   if(!players){if(hudKey==='none')return;hudKey='none';setShootBtn(false);buildHud();return;}
   if(hudEls.length!==players.length||hudKey==='none'||hudKey==='')buildHud();
-  const k=players.map(p=>[p.lives,p.coins,p.score,p.level,p.done,p.weapon,p.armor,p.horse].join()).join('|')+cur+state;
+  const k=players.map(p=>[p.lives,p.coins,p.score,p.level,p.done,p.weapon,p.armor,p.horse,p.mag>0,p.inv2>0,p.dbl].join()).join('|')+cur+state;
   if(k===hudKey)return;hudKey=k;
   setShootBtn(!!P().weapon);
   players.forEach((p,i)=>{const el=hudEls[i];
     el.classList.toggle('on',i===cur&&state!=='over');el.classList.toggle('out',p.lives<=0);
-    el.querySelector('.hearts').textContent=p.lives>0?'♥'.repeat(Math.min(p.lives,5))+(p.lives>5?'+':''):cyr(gw(p.c,'ispao','ispala'));
-    el.querySelector('.lv').textContent=cyr(p.done?'Kraj ★':'Nivo '+(p.level+1));
-    el.querySelector('.coin').textContent=cyr('◆ '+p.coins+(p.weapon===2?' · Super praćka':p.weapon?' · Praćka':'')+(p.armor?' · Oklop':'')+(p.horse?' · Konj':''));
+    el.querySelector('.hearts').textContent=p.lives>0?'♥'.repeat(Math.min(p.lives,5))+(p.lives>5?'+':''):cyr(tr(gw(p.c,'ispao','ispala'),'out'));
+    el.querySelector('.lv').textContent=cyr(p.done?tr('Kraj ★','Done ★'):tr('Nivo ','Level ')+(p.level+1));
+    el.querySelector('.coin').textContent=cyr('◆ '+p.coins+(p.weapon===2?tr(' · Super praćka',' · Super slingshot'):p.weapon?tr(' · Praćka',' · Slingshot'):'')+(p.armor?tr(' · Oklop',' · Armor'):'')+(p.horse?tr(' · Konj',' · Horse'):'')+(p.mag>0?' · Magnet':'')+(p.inv2>0?tr(' · Nevidljivost',' · Invisible'):'')+(p.dbl?tr(' · Dupli skok',' · Double jump'):''));
     el.querySelector('.sc').textContent=p.score;
   });
 }
@@ -962,7 +1143,7 @@ function step(){
   if(state!=='paused'){lvl.t++;moveThings(lvl);}
   for(const b of lvl.bumps)b.t--;lvl.bumps=lvl.bumps.filter(b=>b.t>0);
   for(const k in lvl.springs)if(--lvl.springs[k]<=0)delete lvl.springs[k];
-  if(state==='play'){updateHero();if(state==='play'){updateShots();updateEnemies();}}
+  if(state==='play'){updateHero();if(state==='play'){updateShots();updateEnemies();}if(state==='play'){updateBoss();updateFire();}}
   else if(state==='dying'){hero.vy=Math.min(hero.vy+GRAV,13);hero.y+=hero.vy;if(++dieT>95)handleDeath();}
   else if(state==='win')updateWin();
   else if(state==='ending')updateEnding();
@@ -983,6 +1164,30 @@ function circ(g,x,y,r){g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.fill();}
 function ell(g,x,y,rx,ry){g.beginPath();g.ellipse(x,y,Math.max(.1,rx),Math.max(.1,ry),0,0,Math.PI*2);g.fill();}
 const hash=(a,b)=>{const s=Math.sin(a*127.1+b*311.7)*43758.5453;return s-Math.floor(s);};
 
+function drawHat(g,c,cos,pf,full){
+  if(cos.hat==='kruna'){
+    g.fillStyle='#ffc62b';g.beginPath();g.moveTo(-8,-3);g.lineTo(-8,-11);g.lineTo(-4,-6.5);g.lineTo(0,-13);g.lineTo(4,-6.5);g.lineTo(8,-11);g.lineTo(8,-3);g.closePath();g.fill();
+    g.fillStyle='#d99a00';g.fillRect(-8,-5,16,2);
+    g.fillStyle='#e23b6a';circ(g,0,-7.5,1.7);g.fillStyle='#4fc3f7';circ(g,-5,-6.5,1.2);circ(g,5,-6.5,1.2);
+    g.fillStyle='#fff6c2';circ(g,-8,-11,1.1);circ(g,0,-13,1.2);circ(g,8,-11,1.1);return;}
+  if(cos.hat==='pirat'){
+    g.fillStyle='#1d1d26';g.beginPath();g.ellipse(0,-3,13,3.6,0,0,Math.PI*2);g.fill();
+    g.beginPath();g.moveTo(-9,-3);g.quadraticCurveTo(-8,-13,0,-12.5);g.quadraticCurveTo(8,-13,9,-3);g.closePath();g.fill();
+    g.fillStyle='#ffc62b';g.fillRect(-9,-5,18,1.4);
+    g.fillStyle='#f5f2ff';circ(g,0.5,-8.6,2.3);g.fillRect(-1.1,-7.2,3.2,1.6);g.fillStyle='#1d1d26';g.fillRect(-0.7,-9.3,0.9,0.9);g.fillRect(0.9,-9.3,0.9,0.9);
+    if(full){g.fillStyle='#e23b3b';g.beginPath();g.moveTo(-5,-11);g.quadraticCurveTo(-9,-19+pf,-15,-16+pf);g.quadraticCurveTo(-9,-14,-6,-10);g.fill();}return;}
+  if(c.big){g.fillStyle='#ffd75e';g.beginPath();g.moveTo(-6,-4);g.lineTo(-6,-8);g.lineTo(-3,-5.5);g.lineTo(0,-9);g.lineTo(3,-5.5);g.lineTo(6,-8);g.lineTo(6,-4);g.fill();}
+  g.fillStyle=c.hat;g.beginPath();g.moveTo(-2,-4);g.quadraticCurveTo(-4,-13+pf,-12,-11+pf);g.quadraticCurveTo(-6,-8,-4,-4);g.fill();
+  if(full){g.fillStyle=c.hatD;g.beginPath();g.moveTo(-3,-5);g.quadraticCurveTo(-6,-10+pf,-10,-10+pf);g.quadraticCurveTo(-6,-8,-4,-5);g.fill();}
+}
+function drawShield(g){
+  g.save();g.translate(-10,18);
+  g.fillStyle='#6b4a2a';g.beginPath();g.moveTo(-6,-7);g.lineTo(6,-7);g.lineTo(6,1);g.quadraticCurveTo(5,7,0,10);g.quadraticCurveTo(-5,7,-6,1);g.closePath();g.fill();
+  g.fillStyle='#d0413f';g.beginPath();g.moveTo(-4.5,-5.5);g.lineTo(4.5,-5.5);g.lineTo(4.5,1);g.quadraticCurveTo(3.8,5.5,0,8);g.quadraticCurveTo(-3.8,5.5,-4.5,1);g.closePath();g.fill();
+  g.fillStyle='#d99a00';for(let a=0;a<8;a++)circ(g,Math.cos(a*0.785)*3.4,Math.sin(a*0.785)*3.4,1.2);
+  g.fillStyle='#ffd75e';circ(g,0,0,2.6);g.fillStyle='#5b2a14';g.fillRect(-1.2,-0.8,0.8,0.8);g.fillRect(0.5,-0.8,0.8,0.8);g.fillRect(-0.4,0.8,0.8,0.6);
+  g.restore();
+}
 function kHead(g,c,pf){
   if(c.girl){g.fillStyle=c.hair;g.save();g.translate(-8,5);g.rotate(0.5);rr(g,-3,0,6,15,3);g.fill();g.fillStyle=c.hat;circ(g,0,15,2.2);g.restore();}
   g.fillStyle='#f3c39b';rr(g,-7,2,14,11,4);g.fill();g.fillStyle='#1a1a24';g.fillRect(3,5.5,2.5,3);
@@ -990,8 +1195,7 @@ function kHead(g,c,pf){
   else{g.fillStyle='#b5574a';g.fillRect(3,10.5,3,1.2);}
   g.fillStyle=c.hair;g.fillRect(-7,3,5,9);g.beginPath();g.moveTo(-3,3);g.lineTo(7,3);g.lineTo(6,5.5);g.lineTo(4,4.2);g.lineTo(2,6);g.lineTo(0,4.4);g.lineTo(-2,6);g.closePath();g.fill();
   g.fillStyle='#c9ced8';rr(g,-9,-4,18,8,4);g.fill();g.fillRect(-9,0,4,11);g.fillStyle='#9aa3b5';g.fillRect(-9,3,18,2);g.fillStyle='#c9ced8';g.fillRect(0,3,2,5);
-  if(c.big){g.fillStyle='#ffd75e';g.beginPath();g.moveTo(-6,-4);g.lineTo(-6,-8);g.lineTo(-3,-5.5);g.lineTo(0,-9);g.lineTo(3,-5.5);g.lineTo(6,-8);g.lineTo(6,-4);g.fill();}
-  g.fillStyle=c.hat;g.beginPath();g.moveTo(-2,-4);g.quadraticCurveTo(-4,-13+pf,-12,-11+pf);g.quadraticCurveTo(-6,-8,-4,-4);g.fill();
+  drawHat(g,c,c.cos||{},pf,false);
 }
 function riderBack(g,c,lean,ph,run){
   g.save();g.translate(0,-40);g.rotate(lean);
@@ -1038,13 +1242,15 @@ function drawRiding(g,c,x,feetY,face,ph,run,air){
   drawHorse(g,ph,go,c,true);riderBack(g,c,lean,ph,go);drawHorse(g,ph,go,c,false);riderFront(g,c,lean,ph,go);
   g.restore();
 }
-function drawHero(g,c,x,y,face,walk,air,hurt,weapon,armor,swing){
+function drawHero(g,c,x,y,face,walk,air,hurt,weapon,armor,swing,cosO){
+  const cos=cosO||c.cos||{};
   g.save();g.translate(x+11,y);if(face<0)g.scale(-1,1);
   if(c.big){g.translate(0,30);g.scale(1.08,1.08);g.translate(0,-30);}
   const lg=air?3:Math.sin(walk)*4,sw=air?-4:Math.sin(walk+Math.PI)*3;
   const flap=air?-3:Math.sin(walk*0.5)*2;
   // cape
-  g.fillStyle=c.jacketD;g.beginPath();g.moveTo(-6,11);g.lineTo(-13+flap,27);g.lineTo(-2,25);g.fill();
+  if(cos.cape){g.fillStyle='#ffc62b';g.beginPath();g.moveTo(-6,10);g.lineTo(-15+flap,29);g.lineTo(-1,26);g.fill();g.fillStyle='#fff3b0';g.beginPath();g.moveTo(-6,12);g.lineTo(-11+flap*0.7,23);g.lineTo(-5,22);g.fill();}
+  else{g.fillStyle=c.jacketD;g.beginPath();g.moveTo(-6,11);g.lineTo(-13+flap,27);g.lineTo(-2,25);g.fill();}
   // legs + boots
   g.fillStyle='#6b6f80';g.fillRect(-7+lg*0.5,22,6,6);g.fillRect(1-lg*0.5,22,6,6);
   g.fillStyle='#1a1a24';rr(g,-8+lg*0.5,27,8,3.5,1.5);g.fill();rr(g,0-lg*0.5,27,8,3.5,1.5);g.fill();
@@ -1061,6 +1267,7 @@ function drawHero(g,c,x,y,face,walk,air,hurt,weapon,armor,swing){
     g.fillStyle='#ffe58a';circ(g,-8,13,3.4);circ(g,8,13,3.4);
     const sp=(Date.now()/90)%40;if(sp<6){g.fillStyle='#ffffff';g.fillRect(-4+sp,13,1.6,1.6);}
   }
+  if(cos.shield)drawShield(g);
   // arm + item
   const ax=6+sw*0.4;
   if(swing!=null){
@@ -1098,11 +1305,9 @@ function drawHero(g,c,x,y,face,walk,air,hurt,weapon,armor,swing){
   g.fillStyle='#9aa3b5';g.fillRect(-9,3,18,2);
   g.fillStyle='#e9ecf2';g.fillRect(-6,-3,6,1.5);
   g.fillStyle='#c9ced8';g.fillRect(0,3,2,5);
-  if(c.big){g.fillStyle='#ffd75e';g.beginPath();g.moveTo(-6,-4);g.lineTo(-6,-8);g.lineTo(-3,-5.5);g.lineTo(0,-9);g.lineTo(3,-5.5);g.lineTo(6,-8);g.lineTo(6,-4);g.fill();}
-  // plume
+  // perjanica, kruna ili gusarski šešir
   const pf=air?2:Math.sin(walk*0.5)*1.5;
-  g.fillStyle=c.hat;g.beginPath();g.moveTo(-2,-4);g.quadraticCurveTo(-4,-13+pf,-12,-11+pf);g.quadraticCurveTo(-6,-8,-4,-4);g.fill();
-  g.fillStyle=c.hatD;g.beginPath();g.moveTo(-3,-5);g.quadraticCurveTo(-6,-10+pf,-10,-10+pf);g.quadraticCurveTo(-6,-8,-4,-5);g.fill();
+  drawHat(g,c,cos,pf,true);
   g.restore();
 }
 
@@ -1154,8 +1359,8 @@ function drawEnding(g,W,H,t,c,fw,weapon){
   if(t>260){
     g.globalAlpha=Math.min(1,(t-260)/30);const fs=Math.min(42,W/9);
     g.textAlign='center';g.font='800 '+fs+'px "Rubik",sans-serif';g.lineWidth=6;g.strokeStyle='#130c2a';
-    const bt=cyr('Bravo, '+c.voc+'!');g.strokeText(bt,cx,64);g.fillStyle=c.hat;g.fillText(bt,cx,64);
-    g.font='16px "Nunito",sans-serif';g.lineWidth=4;const st=cyr((c.f?'Stigla':'Stigao')+' si do Kraljeve tvrđave!');g.strokeText(st,cx,92);g.fillStyle='#ffffff';g.fillText(st,cx,92);
+    const bt=cyr(tr('Bravo, '+c.voc+'!','Well done, '+c.name+'!'));g.strokeText(bt,cx,64);g.fillStyle=c.hat;g.fillText(bt,cx,64);
+    g.font='16px "Nunito",sans-serif';g.lineWidth=4;const st=cyr(tr((c.f?'Stigla':'Stigao')+' si do Kraljeve tvrđave!',"You reached the King's Castle!"));g.strokeText(st,cx,92);g.fillStyle='#ffffff';g.fillText(st,cx,92);
     g.globalAlpha=1;
   }
 }
@@ -1377,11 +1582,15 @@ function drawGoal(th){
     ctx.fillStyle=th.roof;ctx.beginPath();ctx.moveTo(tx-6,gy-6*T);ctx.lineTo(tx+T*0.75,gy-6*T-46);ctx.lineTo(tx+T*1.5+6,gy-6*T);ctx.fill();
     ctx.fillStyle='#ffd75e';rr(ctx,tx+T*0.75-7,gy-5*T+4,14,20,7);ctx.fill();
   }
-  const open=hero&&hero.phase==='in';
+  const open=hero&&hero.phase==='in',closed=lvl.boss&&!lvl.boss.dead;
   ctx.beginPath();ctx.moveTo(gx-24,gy);ctx.lineTo(gx-24,gy-56);ctx.arc(gx,gy-56,24,Math.PI,0);ctx.lineTo(gx+24,gy);ctx.closePath();
   ctx.fillStyle=open?'#ffe3a0':'#2a1a14';ctx.fill();
   ctx.strokeStyle=th.stoneHi;ctx.lineWidth=5;ctx.stroke();
   if(open){ctx.globalAlpha=0.35+0.25*Math.sin(tick*0.2);ctx.fillStyle='#fff3c4';circ(ctx,gx,gy-40,30);ctx.globalAlpha=1;}
+  if(closed){// rešetka na kapiji dok je zmaj živ
+    ctx.save();ctx.beginPath();ctx.moveTo(gx-22,gy);ctx.lineTo(gx-22,gy-56);ctx.arc(gx,gy-56,22,Math.PI,0);ctx.lineTo(gx+22,gy);ctx.closePath();ctx.clip();
+    ctx.strokeStyle='#5a5f70';ctx.lineWidth=4;for(let k=-18;k<=18;k+=9){ctx.beginPath();ctx.moveTo(gx+k,gy);ctx.lineTo(gx+k,gy-80);ctx.stroke();}
+    for(let r=gy-10;r>gy-80;r-=16){ctx.beginPath();ctx.moveTo(gx-24,r);ctx.lineTo(gx+24,r);ctx.stroke();}ctx.restore();}
 }
 function drawDeco(d){
   const x=d.x*T,gy=12*T;
@@ -1400,7 +1609,7 @@ function drawDeco(d){
     ctx.fillStyle='rgba(200,200,210,.5)';for(let i=0;i<3;i++){const k=(tick*0.5+i*20)%60;circ(ctx,x+16+Math.sin(k*0.1)*4,gy-30-k,3+k*0.08);}
   }else if(d.type==='sign'){
     ctx.fillStyle='#6b4a2a';ctx.fillRect(x+14,gy-44,4,44);
-    ctx.font='800 11px "Rubik",sans-serif';const label=cyr('Tvrđava →');const tw=ctx.measureText(label).width;
+    ctx.font='800 11px "Rubik",sans-serif';const label=cyr(tr('Tvrđava →','Castle →'));const tw=ctx.measureText(label).width;
     const L0=x+16-tw/2-8,R0=x+16+tw/2+6;
     ctx.fillStyle='#8a5a2b';ctx.beginPath();ctx.moveTo(L0,gy-49);ctx.lineTo(R0,gy-49);ctx.lineTo(R0+11,gy-37);ctx.lineTo(R0,gy-25);ctx.lineTo(L0,gy-25);ctx.closePath();ctx.fill();
     ctx.fillStyle='#c98a4a';ctx.beginPath();ctx.moveTo(L0+2,gy-47);ctx.lineTo(R0-1,gy-47);ctx.lineTo(R0+8,gy-37);ctx.lineTo(R0-1,gy-27);ctx.lineTo(L0+2,gy-27);ctx.closePath();ctx.fill();
@@ -1456,6 +1665,70 @@ function drawCoin(x,y,ph){
   ctx.fillStyle='rgba(255,255,255,'+(0.4+0.6*Math.abs(Math.sin(ph*1.7)))+')';ctx.fillRect(x+6,y-11,2,2);
 }
 
+function drawPow(kind,x,y){
+  ctx.globalAlpha=0.32+0.15*Math.sin(tick*0.15);ctx.fillStyle=POWCOL[kind];circ(ctx,x,y,17);ctx.globalAlpha=1;
+  if(kind==='magnet'){
+    ctx.save();ctx.translate(x,y+2);ctx.rotate(Math.sin(tick*0.08)*0.2);
+    ctx.strokeStyle='#e23b3b';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(-7,-9);ctx.lineTo(-7,0);ctx.arc(0,0,7,Math.PI,0,true);ctx.lineTo(7,-9);ctx.stroke();
+    ctx.fillStyle='#e9ecf2';ctx.fillRect(-10,-13,6,5);ctx.fillRect(4,-13,6,5);ctx.restore();
+  }else if(kind==='nevid'){
+    ctx.fillStyle='#cfe8ff';rr(ctx,x-3,y-12,6,6,1.5);ctx.fill();ctx.fillStyle='#8a5a2b';ctx.fillRect(x-4,y-15,8,4);
+    ctx.fillStyle='rgba(214,239,255,.95)';circ(ctx,x,y+3,9);
+    ctx.fillStyle='#5aa8ff';ctx.beginPath();ctx.arc(x,y+3,9,0.12*Math.PI,0.88*Math.PI);ctx.fill();
+    ctx.fillStyle='#ffffff';circ(ctx,x-3.5,y,2);
+    const sp=(tick*0.1)%(Math.PI*2);ctx.fillStyle='#fff6c2';ctx.globalAlpha=0.5+0.5*Math.sin(sp);ctx.fillRect(x+5,y-6,2,6);ctx.fillRect(x+3,y-4,6,2);ctx.globalAlpha=1;
+  }else{
+    ctx.fillStyle='#8a5a2b';rr(ctx,x-3,y-9,8,13,2);ctx.fill();rr(ctx,x-3,y+1,15,7,3);ctx.fill();
+    ctx.fillStyle='#5b3b22';ctx.fillRect(x-3,y+6,15,2);
+    const fl=Math.sin(tick*0.25)*2;ctx.fillStyle='#ffffff';
+    ctx.beginPath();ctx.moveTo(x-3,y-5);ctx.quadraticCurveTo(x-15,y-14-fl,x-14,y-3);ctx.quadraticCurveTo(x-11,y+1,x-3,y);ctx.fill();
+    ctx.fillStyle='#d6efff';ctx.beginPath();ctx.moveTo(x-3,y-2);ctx.quadraticCurveTo(x-10,y-7-fl,x-10,y-1);ctx.closePath();ctx.fill();
+  }
+}
+function drawFire(f){
+  const fl=Math.sin(tick*0.5+f.x)*1.5;
+  ctx.fillStyle='rgba(255,122,31,.4)';circ(ctx,f.x,f.y,11+fl);ctx.fillStyle='#ff7a1f';circ(ctx,f.x,f.y,7.5);
+  ctx.fillStyle='#ffd23a';circ(ctx,f.x+1,f.y-1,4.2);ctx.fillStyle='#fff6c2';circ(ctx,f.x+1.5,f.y-1.5,1.8);
+}
+function drawBoss(b){
+  if(b.dead&&b.deadT>70)return;
+  const fl=Math.sin(b.t*0.12),walk=Math.abs(b.vx)>0.2;
+  ctx.save();ctx.translate(b.x+b.w/2,b.y+b.h);
+  if(b.dead){ctx.globalAlpha=Math.max(0,1-b.deadT/70);ctx.translate(0,b.deadT*0.6);}
+  if(b.hitT>0&&tick%6<3)ctx.globalAlpha*=0.45;
+  ctx.scale(b.face*2.6,2.6);
+  // rep
+  ctx.fillStyle='#b8322f';ctx.beginPath();ctx.moveTo(-10,-10);ctx.quadraticCurveTo(-22,-7,-26,-16+fl);ctx.quadraticCurveTo(-19,-11,-9,-15);ctx.fill();
+  ctx.fillStyle='#ffd23a';ctx.beginPath();ctx.moveTo(-26,-16+fl);ctx.lineTo(-30,-21+fl);ctx.lineTo(-27,-12+fl);ctx.fill();
+  // zadnje krilo
+  ctx.fillStyle='#6d1f4f';ctx.beginPath();ctx.moveTo(-3,-18);ctx.lineTo(-13,-31-fl*5);ctx.lineTo(-8,-25);ctx.lineTo(-2,-34-fl*6);ctx.lineTo(3,-19);ctx.fill();
+  // noge
+  const st=walk?Math.sin(b.t*0.2)*1.6:0;
+  ctx.fillStyle='#8a2222';ctx.fillRect(-8+st,-8,5,8);ctx.fillRect(3-st,-8,5,8);
+  ctx.fillStyle='#f6e7b8';ctx.fillRect(-8+st,-1,1.4,1.4);ctx.fillRect(-5+st,-1,1.4,1.4);ctx.fillRect(3-st,-1,1.4,1.4);ctx.fillRect(6-st,-1,1.4,1.4);
+  // telo
+  ctx.fillStyle='#d0413f';ell(ctx,0,-14,12.5,8.5);
+  ctx.fillStyle='#ffd9a0';ell(ctx,2,-11,7.5,4.5);
+  ctx.fillStyle='#e8b04a';for(let k=-1;k<=5;k+=3)ctx.fillRect(k-1,-13,2.5,0.8);
+  ctx.fillStyle='#ffd23a';for(let k=-9;k<=3;k+=4){ctx.beginPath();ctx.moveTo(k-2,-21.5);ctx.lineTo(k,-26);ctx.lineTo(k+2,-21.5);ctx.fill();}
+  // vrat i glava
+  ctx.fillStyle='#d0413f';ctx.beginPath();ctx.moveTo(5,-19);ctx.lineTo(11,-27);ctx.lineTo(15,-22);ctx.lineTo(9,-13);ctx.fill();
+  ell(ctx,14,-26,7.5,6);ctx.fillRect(14,-28,8,6);ell(ctx,21.5,-25,2.5,3);
+  ctx.fillStyle='#f6e7b8';ctx.beginPath();ctx.moveTo(10,-31);ctx.lineTo(7,-37);ctx.lineTo(13,-32);ctx.fill();ctx.beginPath();ctx.moveTo(14,-32);ctx.lineTo(14,-38);ctx.lineTo(17,-31);ctx.fill();
+  ctx.fillStyle='#ffffff';circ(ctx,15,-28,2.6);ctx.fillStyle='#1d1d26';circ(ctx,15.8,-28,1.3);
+  ctx.strokeStyle='#5b1414';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(12.5,-31.5);ctx.lineTo(17.5,-30);ctx.stroke();
+  ctx.fillStyle='#1d1d26';ctx.fillRect(21,-27,1.2,1.2);
+  if(b.fireT>0){ctx.fillStyle='#5b1414';ctx.beginPath();ctx.moveTo(15,-23);ctx.lineTo(24,-24);ctx.lineTo(23,-19);ctx.closePath();ctx.fill();
+    ctx.fillStyle='rgba(255,154,46,.8)';circ(ctx,25+Math.sin(tick)*1,-22,2.5);}
+  else{ctx.fillStyle='#f6e7b8';ctx.fillRect(17,-23,1,1.4);ctx.fillRect(20,-23,1,1.4);}
+  // prednje krilo
+  ctx.fillStyle='#9a2f6e';ctx.beginPath();ctx.moveTo(-1,-17);ctx.lineTo(-9,-33-fl*6);ctx.lineTo(-4,-27);ctx.lineTo(3,-36-fl*7);ctx.lineTo(6,-18);ctx.fill();
+  ctx.restore();
+  if(!b.dead){// srca iznad zmaja
+    ctx.font='900 18px "Rubik",sans-serif';ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='rgba(20,24,51,.85)';
+    for(let i=0;i<b.max;i++){const x=b.x+b.w/2+(i-(b.max-1)/2)*20,y=b.y-46;ctx.strokeText('♥',x,y);ctx.fillStyle=i<b.hp?'#ff5a7a':'#3a3f5a';ctx.fillText('♥',x,y);}
+  }
+}
 function render(){
   ctx.setTransform(scale*dpr,0,0,scale*dpr,0,0);
   if(state==='ending'){drawEnding(ctx,VW,H,endT,P().c,fw,P().weapon);return;}
@@ -1475,20 +1748,25 @@ function render(){
   for(const s of lvl.saws)drawSaw(s);
   for(const co of lvl.coins)if(!co.got&&co.x>c-20&&co.x<c+VW+20)drawCoin(co.x,co.y,tick*0.08+co.x*0.01);
   for(const it of lvl.items)if(!it.got){const by=it.y+Math.sin(tick*0.08)*4;if(players&&(P().weapon||0)>=2)drawGift(it.x,by);else drawPick(it.x,by);}
+  for(const pw of lvl.pows)if(!pw.got)drawPow(pw.kind,pw.x,pw.y+Math.sin(tick*0.08+pw.x*0.01)*4);
   for(const s of lvl.shots){if(s.sup){drawStar(ctx,s.x,s.y,8,tick*0.3);}else{ctx.fillStyle='#6d6458';circ(ctx,s.x,s.y,4.5);ctx.fillStyle='#b8ad9c';circ(ctx,s.x-1.2,s.y-1.2,2);}}
   for(const e of lvl.enemies)if(!e.gone&&e.x>c-40&&e.x<c+VW+40&&(!e.dead||e.squish))drawEnemy(e);
+  if(lvl.boss)drawBoss(lvl.boss);
+  for(const f of lvl.fire)drawFire(f);
   if(state==='title'){
     HEROES.forEach((c,i)=>drawHero(ctx,c,(3+i*2)*T,12*T-30-Math.abs(Math.sin(tick*0.06+i*1.4))*6,i%2?-1:1,0,false,false));
   }else if(hero&&!hero.hidden&&players){
     const h=hero;const air=!h.ground&&state==='play';
     if(state==='dying'){ctx.save();ctx.translate(h.x+11,h.y+15);ctx.rotate(Math.min(dieT*0.06,Math.PI));drawHero(ctx,P().c,-11,-15,h.face,0,true,true);ctx.restore();}
     else if(!(h.inv>0&&tick%6<3)){
+      const ghost=players&&P().inv2>0;if(ghost)ctx.globalAlpha=P().inv2<90&&tick%10<5?0.8:0.38;
       const sw=h.atk>0?(-1.7+(14-h.atk)/14*3.0):null;
       if(P().horse)drawRiding(ctx,P().c,h.x+h.w/2,h.y+h.h,h.face,tick*0.35,Math.abs(h.vx)>0.4||state==='win',air);else drawHero(ctx,P().c,h.x,h.y,h.face,h.dist*0.18,air||h.phase==='slide',false,P().weapon,P().armor,sw);
       if(h.atk>3){// bela crta zamaha ispred viteza
         const k=(14-h.atk)/10,cxs=h.x+h.w/2+h.face*6,cys=h.y+h.h*0.5,R=P().horse?34:26;
         ctx.save();ctx.translate(cxs,cys);if(h.face<0)ctx.scale(-1,1);ctx.strokeStyle='rgba(255,255,255,'+(0.85-k*0.5)+')';ctx.lineWidth=4;ctx.lineCap='round';
         ctx.beginPath();ctx.arc(0,0,R,-1.4,-1.4+Math.min(1,k*1.4)*2.4);ctx.stroke();ctx.strokeStyle='rgba(180,220,255,.5)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,R-5,-1.2,-1.2+Math.min(1,k*1.4)*2.1);ctx.stroke();ctx.restore();}
+      ctx.globalAlpha=1;
     }
   }
   for(const p of particles){
@@ -1502,12 +1780,12 @@ function render(){
   // level name chip
   if(state==='play'&&lvl.t<150||state==='card'){
     ctx.globalAlpha=state==='card'?0:Math.min(1,(150-lvl.t)/30);
-    ctx.font='800 18px "Rubik",sans-serif';ctx.textAlign='left';const txt=cyr(lvl.name);const w=ctx.measureText(txt).width+24;
+    ctx.font='800 18px "Rubik",sans-serif';ctx.textAlign='left';const txt=cyr(tr(lvl.name,lvl.en));const w=ctx.measureText(txt).width+24;
     const cx0=Math.round((VW-w)/2),cy0=matchMedia('(max-height:520px) and (orientation:landscape)').matches?Math.round(78/scale):12;ctx.fillStyle='rgba(19,24,51,.75)';rr(ctx,cx0,cy0,w,30,10);ctx.fill();ctx.fillStyle='#fff';ctx.fillText(txt,cx0+12,cy0+21);ctx.globalAlpha=1;
   }
 }
 
-showTitle();
+applyStatic();showTitle();dailyGift();
 requestAnimationFrame(frame);
 })();
 </script>

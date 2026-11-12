@@ -27,6 +27,9 @@
 - **Jedan ili više igrača:** na početku dodirneš ko igra, od 1 do 4: Vojin (plavi), Vukašin (zeleni), Sanja (ljubičasta) i Srđan (crveni). Redom kojim ih biraš, tako igraju.
 - Igra se jedan po jedan. Kad neko izgubi život, na redu je sledeći. Ko ostane bez života ispada, ostali nastavljaju.
 - Svaki igrač ima **3 života**. Na sredini svakog nivoa je kontrolna tačka.
+- **Težina:** posle izbora igrača bira se **Normalno** ili **Lako** (za najmlađe). Lako znači 5 života, šiljci, testere i lava ne bole, neprijatelji su sporiji, a iz provalije viteza izbaci opruga.
+- **Zvezdice:** na kraju nivoa vitez dobija 1–3 zvezdice: jednu za pređen nivo, dve za bar 40% dragog kamenja, tri za bar 70% kamenja bez izgubljenog života. Svaka zvezdica donosi 100 poena.
+- **Veliki zmaj:** na kraju 5. i 10. nivoa kapiju tvrđave čuva veliki zmaj koji bljuje vatru. Obara se sa 3 udarca mačem, praćkom ili skokom na glavu, a vatrene kugle se mogu razbiti mačem.
 - Na kraju nivoa vitez ulazi u dvorac i svira pobednička melodija.
 - **Najbolji rezultati:** igra pamti 10 najboljih rezultata na uređaju. Tabela se vidi na kraju igre i u glavnom meniju, a rekord piše na početnom ekranu.
 - Posle 10. nivoa ide završna scena sa kraljem i vatrometom. Pobeđuje igrač sa najviše poena.
@@ -56,7 +59,23 @@ Pokloni se dobijaju redom, dok vitez ne izgubi život:
 3. **Oklop** (u paketiću): jedan udarac ne oduzima život.
 4. **Konj** (u paketiću): brže trčanje, viši skok, može da se skoči i na ježa. Kad vitez udari nešto, padne sa konja, ali ne gubi život.
 
+Na svakom nivou su još dva čarobna poklona:
+
+- **Magnet** (crvena potkovica): 12 sekundi privlači drago kamenje.
+- **Nevidljivost** (plava bočica): 8 sekundi neprijatelji, vatra, šiljci i testere ne mogu da povrede viteza.
+- **Dupli skok** (čizma sa krilom): vitez može da skoči još jednom u vazduhu.
+
 Kad izgubi život, vitez gubi sve poklone.
+
+### Kostimi i dnevni poklon
+
+- Svaki skupljeni dragi kamen ide u **kasicu**, koja se čuva na uređaju.
+- U glavnom meniju, pod **Kostimi**, kamenjem se kupuju gusarski šešir (150), štit sa lavom (250), kruna (400) i zlatni plašt (600). Kupljen kostim mogu da nose svi vitezovi, svaki po svom izboru.
+- **Dnevni poklon:** prvi put svakog dana igra daje kamenje za kasicu (50, pa sve više ako se dolazi više dana zaredom, do 110).
+
+### Jezik
+
+Igra je na srpskom (ćirilica). U glavnom meniju dugme **English** prebacuje igru na engleski, a dugme **Српски** vraća na srpski. Izbor se pamti.
 
 ### Nivoi
 
@@ -84,7 +103,7 @@ Nova verzija se instalira preko stare, rezultati se ne čuvaju između igara.
 
 ## Google Play
 
-Trenutna verzija je **2.5** (broj verzije 17, Google Mobile Ads SDK 25.5.0, androidx.activity 1.10.1): radi na Androidu 7.0 i novijim, cilja Android 16 (API 36), a dugme „nazad“ radi i na Androidu 16. Fontovi su u aplikaciji.
+Trenutna verzija je **2.6** (broj verzije 18, Google Mobile Ads SDK 25.5.0, androidx.activity 1.10.1): radi na Androidu 7.0 i novijim, cilja Android 16 (API 36), a dugme „nazad“ radi i na Androidu 16. Fontovi su u aplikaciji.
 
 **Reklame (AdMob).** Na dnu ekrana je reklamni baner preko cele širine, a igra je iznad njega. Igru igraju i deca, pa su reklame podešene po pravilima Google Play-a za porodice: bez personalizacije, samo za sve uzraste (G), bez reklamnog ID-ja i bez Privacy Sandbox dozvola. Internet treba samo za baner.
 
