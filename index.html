@@ -220,8 +220,8 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
 const cv=document.getElementById('c'),ctx=cv.getContext('2d'),stage=document.getElementById('stage');
 const T=32,ROWS=14,H=ROWS*T;
 const GRAV=0.55,JUMP=-13.6,MAXV=4.2,SPRING=-19;
-const AIR=0,TOP=1,DIRT=2,BRICK=3,CRATE=4,USED=5,SPIKE=6,LAVA=7,SPR=8,STONE=9,CLOUD=10;
-const SOLID=[0,1,1,1,1,1,0,0,1,1,1];
+const AIR=0,TOP=1,DIRT=2,BRICK=3,CRATE=4,USED=5,SPIKE=6,LAVA=7,SPR=8,STONE=9,CLOUD=10,CRACK=11;
+const SOLID=[0,1,1,1,1,1,0,0,1,1,1,1];
 
 const THEMES={
   dan:{sky:['#f7c59f','#fde4c3'],top:'#6fae3c',topD:'#4f8a2a',dirt:'#8c7b6b',dirtD:'#a39382',far:'#c9a6c7',near:'#8fbf7a',stone:'#9b96a3',stoneHi:'#c3bfca',stoneLo:'#6b6672',house:'#f3d9a4',roof:'#c8452f'},
@@ -481,9 +481,38 @@ function build(def){
   // novi pokloni: magnet, nevidljivost i dupli skok umesto po jednog kamena
   {const li=LEVELS.indexOf(def),cs=L.coins.slice().sort((a,b)=>a.x-b.x);
    [0.3,0.68].forEach((f,k)=>{const c=cs[Math.floor(cs.length*f)];if(!c)return;L.coins.splice(L.coins.indexOf(c),1);L.pows.push({x:c.x,y:c.y,kind:POWS[(Math.max(0,li)+k)%3],got:false});});}
+  {const li=LEVELS.indexOf(def);if(li%2===1)placeSecret(L);}
   L.totalGems=L.coins.length;for(const r of L.g)for(const t of r)if(t===CRATE)L.totalGems++;
   moveThings(L);L.movers.forEach(m=>{m.dx=0;m.dy=0;});
   return L;
+}
+// tajna soba: napukao zid (razbija se mačem ili praćkom), iza njega sanduk i drago kamenje
+function placeSecret(L){
+  const W=6,GROUND=[TOP,STONE,DIRT,CLOUD],g=L.g;
+  const hi=L.goal-(L.boss?20:8)-W,lo=10;
+  const busy=(x1,x2)=>{const X1=x1*T,X2=(x2+1)*T,inR=x=>x>=X1&&x<X2;
+    return L.items.some(c=>inR(c.x))||L.pows.some(c=>inR(c.x))||L.enemies.some(e=>e.type==='ptica'&&inR(e.bx))||
+      L.movers.some(m=>Math.max(m.by,m.by+m.ay)>5*T&&Math.min(m.bx,m.bx+m.ax)<X2&&Math.max(m.bx,m.bx+m.ax)+m.w>X1)||L.saws.some(m=>Math.max(m.by,m.by+m.ay)>5*T&&Math.min(m.bx,m.bx+m.ax)-20<X2&&Math.max(m.bx,m.bx+m.ax)+20>X1);};
+  const ok=c=>{if(L.cp>=c-3&&L.cp<=c+W+1)return false;
+    for(let x=c-3;x<c+W;x++){if(!GROUND.includes(g[12][x]))return false;const y0=x>=c&&x<c+W?6:9;for(let y=y0;y<12;y++)if(g[y][x]!==AIR)return false;}
+    return !busy(c-1,c+W);};
+  const start=Math.floor(L.w*0.45);let c=-1;
+  for(let x=start;x<=hi&&c<0;x++)if(ok(x))c=x;
+  for(let x=start-1;x>=lo&&c<0;x--)if(ok(x))c=x;
+  if(c<0)return;
+  {const X1=(c-1)*T,X2=(c+W+1)*T,inR=x=>x>=X1&&x<X2;L.coins=L.coins.filter(o=>!(inR(o.x)&&o.y>5*T));L.enemies=L.enemies.filter(e=>!inR(e.x+e.w/2));}
+  for(let x=c;x<c+W;x++)g[9][x]=STONE;
+  g[10][c]=g[11][c]=CRACK;g[10][c+W-1]=g[11][c+W-1]=STONE;g[11][c+W-2]=CRATE;
+  for(const [x,y] of [[1,11],[2,11],[3,11],[2,10],[3,10]])L.coins.push({x:(c+x)*T+T/2,y:y*T+T/2,got:false,k:'s'+(c+x)+','+y});
+  L.secret=c;L.secretOpen=false;
+}
+function breakWall(cx,cy){
+  let y0=cy,y1=cy;while(tileAt(cx,y0-1)===CRACK)y0--;while(tileAt(cx,y1+1)===CRACK)y1++;
+  const th=THEMES[lvl.theme];lvl.secretOpen=true;
+  for(let y=y0;y<=y1;y++){lvl.g[y][cx]=AIR;
+    for(let i=0;i<12;i++)particles.push({type:'dot',x:cx*T+Math.random()*T,y:y*T+Math.random()*T,vx:(Math.random()-.5)*6,vy:-Math.random()*4.5,life:36,max:36,col:i%3===0?th.stoneLo:i%3===1?th.stone:th.stoneHi,r:2.5+Math.random()*3.5});}
+  for(let i=0;i<18;i++){const an=i/18*Math.PI*2;particles.push({type:'dot',x:cx*T+T,y:(y0+y1+1)/2*T,vx:Math.cos(an)*3,vy:Math.sin(an)*3,life:30,max:30,col:i%2?'#ffd75e':'#fff3b8',r:2.5});}
+  addScore(200);sfx('super');popText(cx*T+T*1.5,y0*T-14,tr('Tajna soba!','Secret room!'),'#ffe27a');
 }
 function moveThings(L){
   for(const m of L.movers.concat(L.saws)){
@@ -665,7 +694,7 @@ function updateHero(){
       if(lvl.boss&&ov(hb,lvl.boss))hitBoss();
       for(const f of lvl.fire)if(ov(hb,{x:f.x-7,y:f.y-7,w:14,h:14})){f.life=0;puff(f.x,f.y,8,'#ffd23a');}
       const x0=Math.floor(hb.x/T),x1=Math.floor((hb.x+hb.w)/T),y0=Math.floor(hb.y/T),y1=Math.floor((hb.y+hb.h)/T);
-      for(let cy=y0;cy<=y1;cy++)for(let cx=x0;cx<=x1;cx++)if(tileAt(cx,cy)===CRATE){lvl.g[cy][cx]=USED;coinPop(cx*T+T/2,cy*T);addCoin('k'+cx+','+cy);sfx('coin');}}}
+      for(let cy=y0;cy<=y1;cy++)for(let cx=x0;cx<=x1;cx++){const t=tileAt(cx,cy);if(t===CRATE){lvl.g[cy][cx]=USED;coinPop(cx*T+T/2,cy*T);addCoin('k'+cx+','+cy);sfx('coin');}else if(t===CRACK)breakWall(cx,cy);}}}
   if(K.sp){K.sp=false;
     if(pl.weapon===2&&h.cool<=0&&lvl.shots.length<9){h.cool=16;for(const vy0 of [-4.5,-1.5,1.2])lvl.shots.push({x:h.x+h.w/2+h.face*12,y:h.y+12,vx:h.face*8+h.vx*0.4,vy:vy0,life:120,sup:true});sfx('super');}
     else if(pl.weapon&&h.cool<=0&&lvl.shots.length<3){h.cool=14;lvl.shots.push({x:h.x+h.w/2+h.face*12,y:h.y+12,vx:h.face*7.5+h.vx*0.4,vy:-1.5,life:110});sfx('shoot');}}
@@ -692,7 +721,7 @@ function updateShots(){
   for(const s of lvl.shots){
     s.life--;s.vy=Math.min(s.vy+0.42,9);
     const box={x:s.x-4,y:s.y-4,w:8,h:8,vx:s.vx,vy:s.vy};
-    box.x+=s.vx;if(collideX(box)){s.life=0;puff(s.x,s.y,5,'#d8d2c4');continue;}
+    box.x+=s.vx;if(collideX(box)){s.life=0;puff(s.x,s.y,5,'#d8d2c4');{const cx=Math.floor((s.x+Math.sign(s.vx)*10)/T),cy=Math.floor(s.y/T);if(tileAt(cx,cy)===CRACK)breakWall(cx,cy);}continue;}
     box.y+=s.vy;box.ground=false;collideY(box,false);
     if(box.ground)box.vy=-5.5;
     s.x=box.x+4;s.y=box.y+4;s.vy=box.vy;
@@ -806,9 +835,34 @@ function alive(i){return players[i].lives>0&&!players[i].done;}
 function pick(){const n=players.length;for(let k=1;k<=n;k++){const i=(cur+k)%n;if(alive(i))return i;}return -1;}
 function handleDeath(){
   const prev=cur;P().lives--;P().lost=true;
+  if(P().lives<=0&&!rewardUsed&&rewardReady())return offerReward(prev);
+  afterDeath(prev);
+}
+function afterDeath(prev){
   const n=pick();
   if(n<0)return gameOver();
   prepareTurn(n,players.length===1?'retry':n===prev?'again':'switch',prev);
+}
+/* ---------- Reklama sa nagradom: kad igrač ostane bez života, jednom u igri ---------- */
+let rewardUsed=false,rewardTimer=0;
+function rewardReady(){try{return !!(window.AndroidAds&&window.AndroidAds.ready());}catch(e){return false;}}
+function offerReward(prev){
+  state='card';const pl=P();
+  showCard({kick:tr(gw(pl.c,'Ostao','Ostala')+' si bez života','No lives left'),title:tr('Još jedan život?','One more life?'),color:pl.c.jacket,heroes:[pl.c],
+    info:tr('Pogledaj kratku reklamu i '+pl.c.name+' nastavlja od kontrolne tačke. Ovo može samo jednom u igri.','Watch a short ad and '+pl.c.name+' continues from the checkpoint. You can do this only once per game.'),
+    btn:tr('▶ Pogledaj reklamu (+1 ♥)','▶ Watch an ad (+1 ♥)'),go:()=>watchReward(prev),
+    alt:{label:tr('Ne, hvala','No, thanks'),fn:()=>afterDeath(prev)}});
+}
+function watchReward(prev){
+  rewardUsed=true;
+  showCard({kick:tr('Reklama','Ad'),title:tr('Samo trenutak…','Just a moment…'),color:'#ffc62b',info:tr('Reklama se učitava.','The ad is loading.')});
+  let done=false;
+  const finish=ok=>{if(done)return;done=true;clearTimeout(rewardTimer);window.onRewardResult=null;
+    if(ok){P().lives=1;sfx('life');prepareTurn(cur,'reward',prev);}
+    else showCard({kick:tr('Reklama','Ad'),title:tr('Reklama nije dostupna','The ad is not available'),color:'#ffc62b',info:tr('Ovaj put nema dodatnog života.','No extra life this time.'),btn:tr('U redu','OK'),go:()=>afterDeath(prev)});};
+  window.onRewardResult=ok=>finish(!!ok);
+  rewardTimer=setTimeout(()=>finish(false),90000);
+  try{window.AndroidAds.show();}catch(e){finish(false);}
 }
 function startWin(){
   state='win';const h=hero;h.vx=0;h.phase='walk';h.pt=0;h.face=1;
@@ -883,6 +937,7 @@ function prepareTurn(i,reason,prev){
   if(reason==='retry'){kick=tr(gw(pl.c,'Izgubio','Izgubila')+' si život','You lost a life');title=tr('Probaj ponovo, '+pl.c.voc+'!','Try again, '+nm+'!');}
   if(reason==='switch')kick=players[prev].lives>0?tr(pn+' je '+gw(pc,'izgubio','izgubila')+' život',pn+' lost a life'):tr(pn+' je '+gw(pc,'ispao','ispala')+' iz igre',pn+' is out of the game');
   if(reason==='again'){kick=players.length===2?(()=>{const o=players[1-i];return o.done?tr(o.c.name+' je već '+gw(o.c,'prešao','prešla')+' sve nivoe',o.c.name+' has finished all levels'):tr(o.c.name+' više nema života',o.c.name+' has no lives left');})():tr('Ostali su završili igru','The others have finished');title=tr(nm+' nastavlja!',nm+' keeps going!');}
+  if(reason==='reward'){kick=tr(gw(pl.c,'Dobio','Dobila')+' si još jedan život','You got one more life');title=tr('Napred, '+pl.c.voc+'!','Go, '+nm+'!');}
   if(reason==='level'){kick=tr('Nivo pređen!','Level complete!');title=tr('Bravo, '+pl.c.voc+'!','Well done, '+nm+'!');}
   if(reason==='done')kick=tr(pn+' je '+gw(pc,'prešao','prešla')+' sve nivoe!',pn+' finished all levels!');
   const LV=LEVELS[pl.level];
@@ -940,7 +995,7 @@ function startGame(s){
   setup=s;easy=!!s.easy;
   players=s.order.map(i=>({c:HEROES[i],idx:i,lives:easy?5:3,score:0,coins:0,level:START_LEVEL,cp:null,done:false,weapon:TEST_HORSE?2:0,armor:TEST_HORSE,horse:TEST_HORSE,
     stars:0,lastStars:0,gems:new Set(),lost:false,mag:0,inv2:0,dbl:false}));
-  hudKey='';cur=0;prepareTurn(0,'start',null);
+  hudKey='';cur=0;rewardUsed=false;prepareTurn(0,'start',null);
 }
 function showTitle(){
   state='title';players=null;hudKey='';lvl=build(LEVELS[0]);cam=0;
@@ -1504,6 +1559,36 @@ function drawTile(t,x,y,cx,cy,th){
       ctx.fillStyle=th.stoneLo;ctx.fillRect(x,y+T-3,T,3);ctx.fillRect(x+T-3,y,3,T);
       if(hash(cx,cy)>0.6){ctx.fillRect(x+8,y+10,8,2);ctx.fillRect(x+15,y+12,2,6);}
       break;
+    case CRACK:{
+      // napukao zid: kamen sa širokom cik-cak pukotinom kroz koju sija zlatna svetlost
+      const top=tileAt(cx,cy-1)!==CRACK,bot=tileAt(cx,cy+1)!==CRACK;
+      ctx.fillStyle=th.stone;ctx.fillRect(x,y,T,T);
+      ctx.fillStyle=th.stoneHi;ctx.fillRect(x,y,T,3);ctx.fillRect(x,y,3,T);
+      ctx.fillStyle=th.stoneLo;ctx.fillRect(x,y+T-3,T,3);ctx.fillRect(x+T-3,y,3,T);
+      // okrnjene ivice
+      ctx.fillStyle=th.stoneLo;
+      if(top){ctx.beginPath();ctx.moveTo(x+T,y);ctx.lineTo(x+T-9,y);ctx.lineTo(x+T,y+7);ctx.fill();}
+      if(bot){ctx.beginPath();ctx.moveTo(x,y+T);ctx.lineTo(x+8,y+T);ctx.lineTo(x,y+T-6);ctx.fill();}
+      // glavna pukotina (srednja linija i širina u svakoj tački)
+      const mid=top?[[17,-1,1.2],[14,5,2.6],[19,10,3.8],[15,16,4.6],[20,23,4.2],[16,33,3]]:[[16,-1,3],[21,5,4],[16,12,4.6],[18,18,3.6],[13,25,2.6],[15,33,1.2]];
+      const gap=(k)=>{ctx.beginPath();mid.forEach(([mx,my],i)=>{const w=mid[i][2]*k;i?ctx.lineTo(x+mx-w,y+my):ctx.moveTo(x+mx-w,y+my);});
+        for(let i=mid.length-1;i>=0;i--){const [mx,my]=mid[i],w=mid[i][2]*k;ctx.lineTo(x+mx+w*0.8,y+my+1);}ctx.closePath();};
+      const gl=0.55+0.4*Math.sin(tick*0.11+cx*0.7);
+      ctx.save();
+      ctx.fillStyle=`rgba(255,200,70,${gl*0.28})`;gap(1.8);ctx.fill();   // sjaj oko pukotine
+      ctx.fillStyle='#1b1630';gap(1.15);ctx.fill();                         // tamni procep
+      ctx.fillStyle=`rgba(255,226,122,${gl*0.9})`;gap(0.3);ctx.fill();      // svetlost iznutra
+      // sitne prsline
+      ctx.strokeStyle='#2a2240';ctx.lineWidth=1.6;ctx.lineCap='round';ctx.beginPath();
+      const br=top?[[20,12,28,9,31,11],[12,19,5,16,2,19]]:[[13,13,6,10,3,12],[20,20,27,24,30,23]];
+      for(const b of br){ctx.moveTo(x+b[0],y+b[1]);ctx.lineTo(x+b[2],y+b[3]);ctx.lineTo(x+b[4],y+b[5]);}ctx.stroke();
+      ctx.restore();
+      // otpali kamenčići na dnu
+      if(bot){ctx.fillStyle=th.stoneLo;circ(ctx,x-4,y+T-3,3.2);circ(ctx,x+T+3,y+T-2,2.4);ctx.fillStyle=th.stone;circ(ctx,x-9,y+T-2,2.2);}
+      // svetlucanje
+      if(top){const k=(Math.sin(tick*0.09+cx*1.7)+1)/2,r=3+k*5,sx=x+5,sy=y+5;
+        ctx.fillStyle=`rgba(255,240,170,${0.3+k*0.7})`;ctx.beginPath();ctx.moveTo(sx,sy-r);ctx.lineTo(sx+r*.28,sy-r*.28);ctx.lineTo(sx+r,sy);ctx.lineTo(sx+r*.28,sy+r*.28);ctx.lineTo(sx,sy+r);ctx.lineTo(sx-r*.28,sy+r*.28);ctx.lineTo(sx-r,sy);ctx.lineTo(sx-r*.28,sy-r*.28);ctx.fill();}
+      break;}
     case CLOUD:
       ctx.fillStyle='#d6ddfb';rr(ctx,x,y+6,T,T-6,8);ctx.fill();
       ctx.fillStyle='#ffffff';rr(ctx,x,y+4,T,T-10,8);ctx.fill();
@@ -1750,6 +1835,7 @@ function render(){
   for(const it of lvl.items)if(!it.got){const by=it.y+Math.sin(tick*0.08)*4;if(players&&(P().weapon||0)>=2)drawGift(it.x,by);else drawPick(it.x,by);}
   for(const pw of lvl.pows)if(!pw.got)drawPow(pw.kind,pw.x,pw.y+Math.sin(tick*0.08+pw.x*0.01)*4);
   for(const s of lvl.shots){if(s.sup){drawStar(ctx,s.x,s.y,8,tick*0.3);}else{ctx.fillStyle='#6d6458';circ(ctx,s.x,s.y,4.5);ctx.fillStyle='#b8ad9c';circ(ctx,s.x-1.2,s.y-1.2,2);}}
+  if(lvl.secret!=null&&!lvl.secretOpen&&lvl.secret*T<c+VW&&(lvl.secret+6)*T>c){for(let cy=10;cy<=11;cy++)for(let cx=lvl.secret+1;cx<=lvl.secret+4;cx++)drawTile(STONE,cx*T,cy*T,cx,cy,th);}
   for(const e of lvl.enemies)if(!e.gone&&e.x>c-40&&e.x<c+VW+40&&(!e.dead||e.squish))drawEnemy(e);
   if(lvl.boss)drawBoss(lvl.boss);
   for(const f of lvl.fire)drawFire(f);

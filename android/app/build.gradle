@@ -25,6 +25,7 @@ android {
         versionName ciVersionName
         manifestPlaceholders = [admobAppId: admob['appId']]
         buildConfigField 'String', 'ADMOB_BANNER_ID', "\"${admob['bannerId']}\""
+        buildConfigField 'String', 'ADMOB_REWARDED_ID', "\"${admob['rewardedId']}\""
     }
 
     buildFeatures {

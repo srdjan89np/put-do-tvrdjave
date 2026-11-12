@@ -12,6 +12,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -20,14 +21,20 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.window.OnBackInvokedDispatcher;
 
+import com.google.android.gms.ads.AdError;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.FullScreenContentCallback;
+import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.RequestConfiguration;
+import com.google.android.gms.ads.rewarded.RewardedAd;
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
 
 /**
- * Igrica "Put do Kraljeve tvrđave" u WebView-u, sa reklamnim banerom (AdMob) na dnu ekrana.
+ * Igrica "Put do Kraljeve tvrđave" u WebView-u, sa reklamnim banerom (AdMob) na dnu ekrana
+ * i reklamom sa nagradom (dodatni život, samo kad je igrač izabere).
  * Igru igraju i deca, pa se sve reklame traže kao reklame za decu (bez personalizacije, ocena G).
  */
 public class MainActivity extends Activity {
@@ -35,6 +42,8 @@ public class MainActivity extends Activity {
     private WebView web;
     private FrameLayout adBox;
     private AdView adView;
+    private volatile RewardedAd rewarded;
+    private boolean rewardedLoading = false;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -63,6 +72,7 @@ public class MainActivity extends Activity {
         web.setOverScrollMode(View.OVER_SCROLL_NEVER);
         web.setWebViewClient(new WebViewClient());
         web.setWebChromeClient(new WebChromeClient());
+        web.addJavascriptInterface(new AdsBridge(), "AndroidAds");
 
         // Igra gore, baner dole.
         LinearLayout root = new LinearLayout(this);
@@ -100,7 +110,69 @@ public class MainActivity extends Activity {
                 .build();
         MobileAds.setRequestConfiguration(config);
         new Thread(() -> MobileAds.initialize(this, status ->
-                runOnUiThread(() -> adBox.post(this::loadBanner)))).start();
+                runOnUiThread(() -> { adBox.post(this::loadBanner); loadRewarded(); }))).start();
+    }
+
+    /** Reklama sa nagradom se učitava unapred, da bude spremna kad igrač ostane bez života. */
+    private void loadRewarded() {
+        if (rewarded != null || rewardedLoading || isFinishing()) return;
+        rewardedLoading = true;
+        RewardedAd.load(this, BuildConfig.ADMOB_REWARDED_ID, new AdRequest.Builder().build(),
+                new RewardedAdLoadCallback() {
+                    @Override
+                    public void onAdLoaded(RewardedAd ad) {
+                        rewarded = ad;
+                        rewardedLoading = false;
+                    }
+
+                    @Override
+                    public void onAdFailedToLoad(LoadAdError error) {
+                        rewardedLoading = false;
+                    }
+                });
+    }
+
+    private void showRewarded() {
+        RewardedAd ad = rewarded;
+        if (ad == null) {
+            sendReward(false);
+            loadRewarded();
+            return;
+        }
+        rewarded = null;
+        final boolean[] earned = {false};
+        ad.setFullScreenContentCallback(new FullScreenContentCallback() {
+            @Override
+            public void onAdDismissedFullScreenContent() {
+                sendReward(earned[0]);
+                hideSystemBars();
+                loadRewarded();
+            }
+
+            @Override
+            public void onAdFailedToShowFullScreenContent(AdError error) {
+                sendReward(false);
+                loadRewarded();
+            }
+        });
+        ad.show(this, reward -> earned[0] = true);
+    }
+
+    private void sendReward(boolean ok) {
+        web.evaluateJavascript("window.onRewardResult&&window.onRewardResult(" + ok + ")", null);
+    }
+
+    /** Most između igre (JavaScript) i AdMob-a. */
+    private class AdsBridge {
+        @JavascriptInterface
+        public boolean ready() {
+            return rewarded != null;
+        }
+
+        @JavascriptInterface
+        public void show() {
+            runOnUiThread(MainActivity.this::showRewarded);
+        }
     }
 
     /** Prilagodljivi baner preko cele širine ekrana. */

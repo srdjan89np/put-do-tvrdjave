@@ -50,6 +50,10 @@ Na pauzi je i link **Изађи**, koji prekida igru i vraća na glavni meni. Na
 - Dugme **УДАРАЈ** zamahuje mačem i obara neprijatelje ispred viteza. Kad vitez pokupi praćku, isto dugme piše **ПУЦАЈ** i puca.
 - Sanduci sa blagom se otvaraju kad ih vitez dodirne, stane na njih ili ih udari mačem. Iz njih iskoči drago kamenje.
 
+### Tajna soba
+
+U nivoima 2, 4, 6, 8 i 10 stoji napukao zid kroz čije pukotine sija zlatna svetlost. Kad ga vitez udari mačem ili praćkom, zid se sruši, a iza njega je tajna soba sa sandukom i dragim kamenjem (+200 poena).
+
 ### Pokloni
 
 Pokloni se dobijaju redom, dok vitez ne izgubi život:
@@ -103,9 +107,11 @@ Nova verzija se instalira preko stare, rezultati se ne čuvaju između igara.
 
 ## Google Play
 
-Trenutna verzija je **2.6** (broj verzije 18, Google Mobile Ads SDK 25.5.0, androidx.activity 1.10.1): radi na Androidu 7.0 i novijim, cilja Android 16 (API 36), a dugme „nazad“ radi i na Androidu 16. Fontovi su u aplikaciji.
+Trenutna verzija je **2.7** (broj verzije 19, Google Mobile Ads SDK 25.5.0, androidx.activity 1.10.1): radi na Androidu 7.0 i novijim, cilja Android 16 (API 36), a dugme „nazad“ radi i na Androidu 16. Fontovi su u aplikaciji.
 
-**Reklame (AdMob).** Na dnu ekrana je reklamni baner preko cele širine, a igra je iznad njega. Igru igraju i deca, pa su reklame podešene po pravilima Google Play-a za porodice: bez personalizacije, samo za sve uzraste (G), bez reklamnog ID-ja i bez Privacy Sandbox dozvola. Internet treba samo za baner.
+**Reklame (AdMob).** Na dnu ekrana je reklamni baner preko cele širine, a igra je iznad njega. Igru igraju i deca, pa su reklame podešene po pravilima Google Play-a za porodice: bez personalizacije, samo za sve uzraste (G), bez reklamnog ID-ja i bez Privacy Sandbox dozvola. Internet treba samo za reklame.
+
+**Reklama sa nagradom.** Kad igrač izgubi i poslednji život, igra ponudi „Погледај рекламу (+1 ♥)“ ili „Не, хвала“. Posle reklame vitez nastavlja od kontrolne tačke sa jednim životom. To može samo jednom u igri i samo u Android aplikaciji, a reklama se nikad ne pušta sama od sebe. ID jedinice je `rewardedId` u `android/admob.properties`.
 
 - [`android/admob.properties`](android/admob.properties): ID aplikacije i baner jedinice u AdMob-u (tu su i Google-ovi test ID-jevi za probu).
 - [`android/version.properties`](android/version.properties): broj verzije; povećaj ga pre svakog otpremanja na Play.
