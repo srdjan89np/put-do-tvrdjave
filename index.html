@@ -523,7 +523,7 @@ function moveThings(L){
 }
 
 /* ---------- State ---------- */
-let lvl=build(LEVELS[0]),hero=null,players=null,cur=0,state='title',cam=0,VW=640,scale=1,dpr=1,tick=0,particles=[],flagY=0,dieT=0,easy=false,hard=false;
+let lvl=build(LEVELS[0]),hero=null,players=null,cur=0,state='title',cam=0,VW=640,scale=1,dpr=1,tick=0,particles=[],flagY=0,dieT=0,easy=false,hard=false,knight=false;
 const K={l:false,r:false,j:false,jp:false,s:false,sp:false,a:false,ap:false};
 
 /* ---------- Audio ---------- */
@@ -777,15 +777,15 @@ function updateBoss(){
   if(!b.active){if(h.x+h.w>b.x1-T*3)b.active=true;else return;}
   if(b.hitT>0)b.hitT--;
   if(b.fireT>0)b.fireT--;
-  const sp=(easy?0.45:hard?1.15:0.85)*(b.lv===2?1.35:1),dx=(h.x+h.w/2)-(b.x+b.w/2);
+  const sp=(easy?0.45:knight?1.4:hard?1.15:0.85)*(b.lv===2?1.35:1),dx=(h.x+h.w/2)-(b.x+b.w/2);
   if(b.hitT>32)b.vx=-Math.sign(dx||1)*3.2;
   else if(b.fireT>0)b.vx*=0.85;
   else{b.face=dx>0?1:-1;b.vx=Math.abs(dx)>40?b.face*sp:0;}
   b.x=Math.max(b.x1,Math.min(b.x2-b.w,b.x+b.vx));
   b.vy=Math.min(b.vy+GRAV*0.8,12);b.y+=b.vy;const gy=12*T-b.h;
   if(b.y>=gy){b.y=gy;b.vy=0;if(!easy&&b.t%200===120)b.vy=-8.5;}
-  const every=easy?210:(b.lv===2?105:140)*(hard?0.7:1)|0;
-  if(b.t%every===0){b.fireT=36;const n=easy?1:(b.lv===2?3:2)+(hard?1:0);
+  const every=easy?210:(b.lv===2?105:140)*(knight?0.55:hard?0.7:1)|0;
+  if(b.t%every===0){b.fireT=36;const n=easy?1:(b.lv===2?3:2)+(knight?2:hard?1:0);
     for(let k=0;k<n;k++)lvl.fire.push({x:b.x+b.w/2+b.face*44,y:b.y+12,vx:b.face*(easy?2.8:3.8)*(1-k*0.22),vy:-1.8-k*1.6,life:170});sfx('fire');}
   if(ov(h,b,6)&&!(P().inv2>0)){
     if(h.vy>0&&h.y+h.h-b.y<18+h.vy){hitBoss();h.vy=K.j?-12:-9;h.jumping=K.j;}
@@ -941,6 +941,7 @@ function prepareTurn(i,reason,prev){
   lvl=build(LEVELS[pl.level]);particles=[];spawnHero();state='card';pl.mag=0;pl.inv2=0;
   if(easy){for(const e of lvl.enemies){e.vx*=0.6;e.spd=0.6;}for(const s of lvl.saws)s.per*=1.5;}
   if(hard){for(const e of lvl.enemies){e.vx*=1.35;e.spd=1.35;}for(const s of lvl.saws)s.per*=0.75;if(lvl.boss){lvl.boss.hp=lvl.boss.max=5;}}
+  if(knight){for(const e of lvl.enemies){e.vx*=1.2;e.spd=1.62;}for(const s of lvl.saws)s.per*=0.8;if(lvl.boss){lvl.boss.hp=lvl.boss.max=7;}lvl.cp=null;pl.cp=null;}
   const pn=prev!=null?players[prev].c.name:'',nm=pl.c.name;
   const solo=players.length===1;
   let kick='',title=tr('Na redu: ','Your turn: ')+nm;
@@ -955,7 +956,7 @@ function prepareTurn(i,reason,prev){
   const LV=LEVELS[pl.level];
   showCard({kick,title,color:pl.c.jacket,heroes:[pl.c],stars:reason==='level'?pl.lastStars:0,
     info:tr(`Nivo ${pl.level+1} od ${LEVELS.length}: ${LV.name}`,`Level ${pl.level+1} of ${LEVELS.length}: ${LV.en}`)+(LV.theme==='zima'?tr(' (pazi, led je klizav!)',' (careful, the ice is slippery!)'):'')+(LV.boss?tr(' Na kraju te čeka veliki zmaj!',' A big dragon waits at the end!'):''),
-    hint:'♥ '+pl.lives+(pl.lives===1?tr(' život',' life'):tr(' života',' lives'))+(easy?tr(' · lako · štit',' · easy · shield'):hard?tr(' · teško',' · hard'):'')+(pl.cp?tr(' · krećeš od kontrolne tačke',' · starting from the checkpoint'):'')+(!solo&&reason==='start'?tr(' · redosled: ',' · order: ')+players.map(p=>p.c.name).join(' → '):''),
+    hint:'♥ '+pl.lives+(pl.lives===1?tr(' život',' life'):tr(' života',' lives'))+(easy?tr(' · lako · štit',' · easy · shield'):knight?tr(' · viteški · bez kontrolne tačke',' · knightly · no checkpoint'):hard?tr(' · teško',' · hard'):'')+(pl.cp?tr(' · krećeš od kontrolne tačke',' · starting from the checkpoint'):'')+(!solo&&reason==='start'?tr(' · redosled: ',' · order: ')+players.map(p=>p.c.name).join(' → '):''),
     btn:tr('Kreni!','Go!'),go:()=>{hideCard();state='play';}});
 }
 function gameOver(){
@@ -1004,8 +1005,8 @@ function showScores(back){
     table:a,btn:tr('Nazad','Back'),go:back||(()=>showTitle())});
 }
 function startGame(s){
-  setup=s;const d=s.diff||(s.easy?'easy':'normal');easy=d==='easy';hard=d==='hard';
-  players=s.order.map(i=>({c:HEROES[i],idx:i,lives:easy?5:hard?2:3,shield:easy,score:0,coins:0,level:START_LEVEL,cp:null,done:false,weapon:TEST_HORSE?2:0,armor:TEST_HORSE,horse:TEST_HORSE,
+  setup=s;const d=s.diff||(s.easy?'easy':'normal');easy=d==='easy';knight=d==='knight';hard=d==='hard'||knight;
+  players=s.order.map(i=>({c:HEROES[i],idx:i,lives:easy?5:knight?1:hard?2:3,shield:easy,score:0,coins:0,level:START_LEVEL,cp:null,done:false,weapon:TEST_HORSE?2:0,armor:TEST_HORSE,horse:TEST_HORSE,
     stars:0,lastStars:0,gems:new Set(),lost:false,mag:0,inv2:0,dbl:false}));
   hudKey='';cur=0;rewardUsed=false;prepareTurn(0,'start',null);
 }
@@ -1029,15 +1030,16 @@ function choosePlayers(sel,focusIdx){
     btn:sel.length?tr('Dalje','Next'):'',go:sel.length?()=>{lastPick=sel.slice();chooseDifficulty(sel.slice());}:null,
     focus:focusIdx,alt:{label:tr('Nazad','Back'),fn:()=>showTitle()}});
 }
-let lastDiff=(()=>{const v=store.get('ptv-tezina','normal');return v===true?'easy':v===false?'normal':['easy','normal','hard'].includes(v)?v:'normal';})();
+let lastDiff=(()=>{const v=store.get('ptv-tezina','normal');return v===true?'easy':v===false?'normal':['easy','normal','hard','knight'].includes(v)?v:'normal';})();
 function chooseDifficulty(order){
   const go=d=>{lastDiff=d;store.set('ptv-tezina',d);startGame({order,diff:d});};
   showCard({kick:tr('Težina','Difficulty'),title:tr('Kako igramo?','How hard?'),color:'#ffc62b',
-    info:tr('Lako je za najmlađe, a Teško za najhrabrije vitezove.','Easy is for the youngest, Hard is for the bravest knights.'),
+    info:tr('Lako je za najmlađe, Teško za hrabre, a Viteški samo za prave vitezove.','Easy is for the youngest, Hard is for the brave, and Knightly only for true knights.'),
     options:[{label:tr('Lako','Easy'),sub:tr('5 života · štit za svaki život · šiljci i lava ne bole','5 lives · a shield for every life · spikes and lava do not hurt'),color:'#7ddc6a',sel:lastDiff==='easy',fn:()=>go('easy')},
              {label:tr('Normalno','Normal'),sub:tr('3 života','3 lives'),color:'#ffc62b',sel:lastDiff==='normal',fn:()=>go('normal')},
-             {label:tr('Teško','Hard'),sub:tr('2 života · brži neprijatelji · jači zmaj','2 lives · faster enemies · stronger dragon'),color:'#ff6b5e',sel:lastDiff==='hard',fn:()=>go('hard')}],
-    focus:['easy','normal','hard'].indexOf(lastDiff),alt:{label:tr('Nazad','Back'),fn:()=>choosePlayers(order)}});
+             {label:tr('Teško','Hard'),sub:tr('2 života · brži neprijatelji · jači zmaj','2 lives · faster enemies · stronger dragon'),color:'#ff6b5e',sel:lastDiff==='hard',fn:()=>go('hard')},
+             {label:tr('Viteški','Knightly'),sub:tr('najteže · 1 život · bez kontrolne tačke · zmaj sa 7 srca','hardest · 1 life · no checkpoint · dragon with 7 hearts'),color:'#b46bff',sel:lastDiff==='knight',fn:()=>go('knight')}],
+    focus:['easy','normal','hard','knight'].indexOf(lastDiff),alt:{label:tr('Nazad','Back'),fn:()=>choosePlayers(order)}});
 }
 function cosName(id){const k=COSTUMES.find(x=>x.id===id);return k?tr(k.sr,k.en):'';}
 function cosSummary(c){const a=[];if(c.cos.hat)a.push(cosName(c.cos.hat));if(c.cos.shield)a.push(cosName('stit'));if(c.cos.cape)a.push(cosName('plast'));return a.length?a.join(', '):tr('bez kostima','no costume');}

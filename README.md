@@ -56,7 +56,7 @@ U nivoima 2, 4, 6, 8 i 10 stoji napukao zid kroz čije pukotine sija zlatna svet
 
 ### Težina, princeza i završetak
 
-- **Težina:** posle izbora igrača bira se **Lako** (5 života, svaki život ima štit koji jednom primi udarac; šiljci, testere i lava ne bole, ali pad u provaliju oduzima život), **Normalno** (3 života) ili **Teško** (2 života, brži neprijatelji i testere, zmaj ima 5 srca i bljuje više vatre).
+- **Težina:** posle izbora igrača bira se **Lako** (5 života, svaki život ima štit koji jednom primi udarac; šiljci, testere i lava ne bole, ali pad u provaliju oduzima život), **Normalno** (3 života) **Teško** (2 života, brži neprijatelji i testere, zmaj ima 5 srca i bljuje više vatre) ili **Viteški**, najteže od svih (1 život, bez kontrolne tačke, još brži neprijatelji, zmaj ima 7 srca i bljuje najviše vatre).
 - **Princeza:** kad vitez pobedi velikog zmaja na kraju 5. nivoa, iz kule izlazi princeza, zahvaljuje mu i čeka ga u Kraljevoj tvrđavi (+500 poena).
 - **Završetak:** posle pobede nad zmajem na 10. nivou princ mačem proglašava igrača vitezom, nebo se puni vatrometom, a onda vitez i princ zajedno ulaze u tvrđavu, gde ih čekaju kralj i kraljica (i princeza).
 - **Kostimi** su skuplji: 800, 1500, 2500 i 4000 kamenčića.
@@ -114,7 +114,7 @@ Nova verzija se instalira preko stare, rezultati se ne čuvaju između igara.
 
 ## Google Play
 
-Trenutna verzija je **2.9** (broj verzije 21, Google Mobile Ads SDK 25.5.0, androidx.activity 1.10.1): radi na Androidu 7.0 i novijim, cilja Android 16 (API 36), a dugme „nazad“ radi i na Androidu 16. Fontovi su u aplikaciji.
+Trenutna verzija je **3.0** (broj verzije 22, Google Mobile Ads SDK 25.5.0, androidx.activity 1.10.1): radi na Androidu 7.0 i novijim, cilja Android 16 (API 36), a dugme „nazad“ radi i na Androidu 16. Fontovi su u aplikaciji.
 
 **Reklame (AdMob).** Na dnu ekrana je reklamni baner preko cele širine, a igra je iznad njega. Igru igraju i deca, pa su reklame podešene po pravilima Google Play-a za porodice: bez personalizacije, samo za sve uzraste (G), bez reklamnog ID-ja i bez Privacy Sandbox dozvola. Internet treba samo za reklame.
 
