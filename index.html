@@ -61,6 +61,8 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
 .mid button{width:36px;height:30px;border-radius:9px;border:0;background:var(--panel-2);color:var(--ink);font:900 14px var(--body);cursor:pointer}
 .mid button:focus-visible,.pad button:focus-visible,.card button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 #btnSound.off{color:var(--muted);text-decoration:line-through}
+#btnLang{position:fixed;left:max(10px,env(safe-area-inset-left));top:10px;z-index:30;height:34px;padding:0 14px;border-radius:10px;border:2px solid rgba(255,255,255,.18);background:var(--panel-2);color:var(--ink);font:800 15px var(--body);cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.25)}
+#btnLang:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 
 /* Stage */
 #stage{position:relative;flex:1;min-height:0;display:grid;place-items:center}
@@ -174,6 +176,7 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
 </head>
 <body>
 <div id="app">
+  <button id="btnLang" hidden></button>
   <header class="hud">
     <div class="pls" id="hudP"></div>
     <div class="mid">
@@ -1024,7 +1027,8 @@ function showTitle(){
     hint:matchMedia('(hover:hover) and (pointer:fine)').matches?tr('← → kretanje · ↑ ili razmak skok · {X} udaraj mačem (sa praćkom: pucaj) · {P} pauza','← → move · ↑ or space jump · X sword (with a slingshot: shoot) · P pause'):tr('◀ ▶ kretanje, SKOK skok, UDARAJ mačem (kad pokupiš praćku: PUCAJ). Najbolje se igra kad okreneš telefon.','◀ ▶ move, JUMP to jump, HIT with the sword (with a slingshot: SHOOT). Best played with the phone sideways.'),
     btn:tr('Izaberi igrače','Choose players'),go:()=>choosePlayers([]),
     record:bestLine(),
-    links:[...(netOK()?[{label:tr('Igra preko Blututa','Bluetooth game'),fn:()=>netMenu()}]:[]),{label:'◆ '+bank+' · '+tr('Kostimi','Costumes'),fn:()=>showCostumes()},{label:tr('Najbolji rezultati','Best scores'),fn:()=>showScores()},{label:lang==='en'?'Српски':'{English}',fn:()=>setLang(lang==='en'?'sr':'en')}]});
+    links:[...(netOK()?[{label:tr('Igra preko Blututa','Bluetooth game'),fn:()=>netMenu()}]:[]),{label:'◆ '+bank+' · '+tr('Kostimi','Costumes'),fn:()=>showCostumes()},{label:tr('Najbolji rezultati','Best scores'),fn:()=>showScores()}]});
+  titleCard=true;
 }
 /* ---------- Igra preko Blututa: svako na svom telefonu, igra se na smenu ---------- */
 let NET=null;
@@ -1213,7 +1217,9 @@ function togglePause(){
 /* ---------- Card UI ---------- */
 const card=document.getElementById('card'),goBtn=document.getElementById('cGo');
 let goFn=null;
+let titleCard=false;
 function showCard(o){
+  titleCard=false;
   o=Object.assign({},o);for(const k of ['kick','title','info','hint','btn'])if(o[k])o[k]=cyr(o[k]);
   if(o.options)o.options=o.options.map(op=>Object.assign({},op,{label:cyr(op.label),sub:cyr(op.sub)}));
   if(o.alt)o.alt={label:cyr(o.alt.label),fn:o.alt.fn};
@@ -1305,10 +1311,13 @@ function buildHud(){
     el.innerHTML='<div class="top"><b></b><span class="hearts"></span></div><div class="stats"><span class="lv"></span><span class="coin"></span><span class="sc"></span></div>';
     el.querySelector('b').textContent=cyr(p.c.name);hudP.appendChild(el);hudEls.push(el);});
 }
-const btnPause=document.getElementById('btnPause');
+const btnPause=document.getElementById('btnPause'),btnLang=document.getElementById('btnLang');
+btnLang.addEventListener('click',()=>{if(state==='title')setLang(lang==='en'?'sr':'en');});
 function updHud(){
   const showPause=!!players&&(state==='play'||state==='paused');
   if(btnPause.hidden===showPause)btnPause.hidden=!showPause;
+  const showLang=titleCard&&!card.hidden&&!players;if(btnLang.hidden===showLang)btnLang.hidden=!showLang;
+  {const lt='🌐 '+(lang==='en'?'Српски':'English');if(btnLang.textContent!==lt){btnLang.textContent=lt;btnLang.setAttribute('aria-label',lang==='en'?'Српски језик':'English language');}}
   if(!players){if(hudKey==='none')return;hudKey='none';setShootBtn(false);buildHud();return;}
   if(hudEls.length!==players.length||hudKey==='none'||hudKey==='')buildHud();
   const k=players.map(p=>[p.lives,p.shield,p.coins,p.score,p.level,p.done,p.weapon,p.armor,p.horse,p.mag>0,p.inv2>0,p.dbl].join()).join('|')+cur+state;

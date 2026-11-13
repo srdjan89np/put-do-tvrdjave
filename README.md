@@ -16,8 +16,8 @@
 </p>
 
 <p align="center">
-  <a href="docs/promo.mp4"><img src="docs/promo-poster.jpg" width="640" alt="Promo klip igrice (30 s)"></a><br>
-  <sub>▶ <a href="docs/promo.mp4">Pogledaj promo klip</a> (30 s) · <a href="docs/promo-en.mp4">English promo</a> (42 s)</sub>
+  <a href="docs/promo.mp4"><img src="docs/promo-poster.jpg" width="640" alt="Promo klip igrice (42 s)"></a><br>
+  <sub>▶ <a href="docs/promo.mp4">Pogledaj promo klip</a> (42 s) · <a href="docs/promo-en.mp4">English promo</a> (42 s)</sub>
 </p>
 
 ---
@@ -118,7 +118,7 @@ Nova verzija se instalira preko stare, rezultati se ne čuvaju između igara.
 
 ## Google Play
 
-Trenutna verzija je **3.1** (broj verzije 23, Google Mobile Ads SDK 25.5.0, androidx.activity 1.10.1): radi na Androidu 7.0 i novijim, cilja Android 16 (API 36), a dugme „nazad“ radi i na Androidu 16. Fontovi su u aplikaciji.
+Trenutna verzija je **3.2** (broj verzije 24, Google Mobile Ads SDK 25.5.0, androidx.activity 1.10.1): radi na Androidu 7.0 i novijim, cilja Android 16 (API 36), a dugme „nazad“ radi i na Androidu 16. Fontovi su u aplikaciji.
 
 **Reklame (AdMob).** Na dnu ekrana je reklamni baner preko cele širine, a igra je iznad njega. Igru igraju i deca, pa su reklame podešene po pravilima Google Play-a za porodice: bez personalizacije, samo za sve uzraste (G), bez reklamnog ID-ja i bez Privacy Sandbox dozvola. Internet treba samo za reklame.
 
@@ -128,6 +128,7 @@ Trenutna verzija je **3.1** (broj verzije 23, Google Mobile Ads SDK 25.5.0, andr
 - [`android/version.properties`](android/version.properties): broj verzije; povećaj ga pre svakog otpremanja na Play.
 
 - [`docs/play/`](docs/play/): ikonica za prodavnicu (512×512), velika slika (1024×500) i tekstovi za stranicu u prodavnici.
+- [`docs/play/sr/`](docs/play/sr/): nova srpska velika slika i 8 snimaka ekrana sa natpisima (1920×1080).
 - [`docs/play/en/`](docs/play/en/): velika slika i 8 snimaka ekrana na engleskom (1920×1080), a promo na engleskom je [`docs/promo-en.mp4`](docs/promo-en.mp4).
 - [Politika privatnosti](https://srdjan89np.github.io/put-do-tvrdjave/privatnost.html) (izvor: [`docs/privatnost.html`](docs/privatnost.html)): link za Google Play.
 - `.aab` za Play pravi GitHub Actions (vidi ispod). Pre otpremanja ga treba potpisati ključem za otpremanje, koji se ne čuva u repozitorijumu.
@@ -144,7 +145,7 @@ icon.png                    ikonica
 android/                    Android aplikacija (WebView koji otvara index.html + AdMob baner)
 scripts/fetch-fonts.sh      preuzima fontove Rubik i Nunito (ćirilica) za rad bez interneta
 scripts/make-icons.py       crta ikonicu u svim veličinama
-scripts/promo/              pravi promo klipove docs/promo.mp4 (record.py) i docs/promo-en.mp4 (record_en.py) iz prave igre
+scripts/promo/              pravi promo klipove docs/promo.mp4 (record_sr.py, make.sh) i docs/promo-en.mp4 (record_en.py, make_en.sh) iz prave igre
 .github/workflows/          automatsko pravljenje APK-a i objava na GitHub Pages
 ```
 
