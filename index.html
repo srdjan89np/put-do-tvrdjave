@@ -923,7 +923,7 @@ function updateEnding(){
     if(K.jp){K.jp=false;if(endT>30&&endT<360)endT=360;}
     if(endT>=400&&!endCard){endCard=true;
       showCard({kick:tr('Princeza je spasena!','The princess is saved!'),title:tr('Hvala, '+gw(c,'hrabri viteže','hrabra vitežice')+'!','Thank you, brave knight!'),color:'#ff7ab8',heroes:[c],
-        info:tr('Pobedio si velikog zmaja i oslobodio princezu. Ona te čeka u Kraljevoj tvrđavi. +500 poena','You beat the big dragon and freed the princess. She will wait for you at the King\'s Castle. +500 points').replace('Pobedio',gw(c,'Pobedio','Pobedila')),
+        info:tr(gw(c,'Pobedio','Pobedila')+' si velikog zmaja i '+gw(c,'oslobodio','oslobodila')+' princezu. Ona te čeka u Kraljevoj tvrđavi. +500 poena','You beat the big dragon and freed the princess. She will wait for you at the King\'s Castle. +500 points'),
         btn:tr('Dalje','Next'),go:()=>{hideCard();endAfter();}});}
     return;
   }
