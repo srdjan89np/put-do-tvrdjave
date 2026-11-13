@@ -53,7 +53,7 @@ window.__R={
 zk='  scale=Math.min(aw/VW,ah/H);dpr=Math.min(2,window.devicePixelRatio||1);'
 assert zk in src
 src=src.replace(zk,zk+"if(window.__ZOOM){VW=window.__ZOOM*T;scale=aw/VW;}")
-key = 'showTitle();\nrequestAnimationFrame(frame);'
+key = 'showTitle();dailyGift();\nrequestAnimationFrame(frame);'
 assert key in src
 src = src.replace(key, HOOK)
 

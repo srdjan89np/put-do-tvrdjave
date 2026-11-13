@@ -17,7 +17,7 @@
 
 <p align="center">
   <a href="docs/promo.mp4"><img src="docs/promo-poster.jpg" width="640" alt="Promo klip igrice (30 s)"></a><br>
-  <sub>▶ <a href="docs/promo.mp4">Pogledaj promo klip</a> (30 s)</sub>
+  <sub>▶ <a href="docs/promo.mp4">Pogledaj promo klip</a> (30 s) · <a href="docs/promo-en.mp4">English promo</a> (42 s)</sub>
 </p>
 
 ---
@@ -128,6 +128,7 @@ Trenutna verzija je **3.1** (broj verzije 23, Google Mobile Ads SDK 25.5.0, andr
 - [`android/version.properties`](android/version.properties): broj verzije; povećaj ga pre svakog otpremanja na Play.
 
 - [`docs/play/`](docs/play/): ikonica za prodavnicu (512×512), velika slika (1024×500) i tekstovi za stranicu u prodavnici.
+- [`docs/play/en/`](docs/play/en/): velika slika i 8 snimaka ekrana na engleskom (1920×1080), a promo na engleskom je [`docs/promo-en.mp4`](docs/promo-en.mp4).
 - [Politika privatnosti](https://srdjan89np.github.io/put-do-tvrdjave/privatnost.html) (izvor: [`docs/privatnost.html`](docs/privatnost.html)): link za Google Play.
 - `.aab` za Play pravi GitHub Actions (vidi ispod). Pre otpremanja ga treba potpisati ključem za otpremanje, koji se ne čuva u repozitorijumu.
 - [`scripts/play/make_aab.py`](scripts/play/make_aab.py): stari način pravljenja `.aab` bez Android SDK-a (za verzije bez reklama).
@@ -143,7 +144,7 @@ icon.png                    ikonica
 android/                    Android aplikacija (WebView koji otvara index.html + AdMob baner)
 scripts/fetch-fonts.sh      preuzima fontove Rubik i Nunito (ćirilica) za rad bez interneta
 scripts/make-icons.py       crta ikonicu u svim veličinama
-scripts/promo/              pravi promo klip docs/promo.mp4 iz prave igre
+scripts/promo/              pravi promo klipove docs/promo.mp4 (record.py) i docs/promo-en.mp4 (record_en.py) iz prave igre
 .github/workflows/          automatsko pravljenje APK-a i objava na GitHub Pages
 ```
 

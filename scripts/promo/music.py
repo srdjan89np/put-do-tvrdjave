@@ -2,7 +2,7 @@
 import numpy as np, wave, os
 
 SR = 44100
-DUR = 891 / 30
+DUR = int(os.environ.get("FRAMES", "891")) / 30
 BPM = 128
 B = 60 / BPM          # trajanje jedne dobe
 N = int(SR * DUR)
