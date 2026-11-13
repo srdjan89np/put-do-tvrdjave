@@ -54,6 +54,10 @@ Na pauzi je i link **Изађи**, koji prekida igru i vraća na glavni meni. Na
 
 U nivoima 2, 4, 6, 8 i 10 stoji napukao zid kroz čije pukotine sija zlatna svetlost. Kad ga vitez udari mačem ili praćkom, zid se sruši, a iza njega je tajna soba sa sandukom i dragim kamenjem (+200 poena).
 
+### Igra preko Blututa
+
+U glavnom meniju je „Игра преко Блутута“ (Android 13 i noviji): jedan telefon izabere „Направи игру“, ostali (do 4 igrača) „Придружи се“. Svako bira svog viteza i igra na svom telefonu, a igra se na smenu kao i na jednom telefonu: dok jedan igra, ostali vide ko je na redu i poene. Telefoni se povezuju direktno (Google Nearby Connections, Blutut i Wi‑Fi), bez interneta. Aplikacija traži dozvolu „Уређаји у близини“, a ne traži lokaciju.
+
 ### Težina, princeza i završetak
 
 - **Težina:** posle izbora igrača bira se **Lako** (5 života, svaki život ima štit koji jednom primi udarac; šiljci, testere i lava ne bole, ali pad u provaliju oduzima život), **Normalno** (3 života) **Teško** (2 života, brži neprijatelji i testere, zmaj ima 5 srca i bljuje više vatre) ili **Viteški**, najteže od svih (1 život, bez kontrolne tačke, još brži neprijatelji, zmaj ima 7 srca i bljuje najviše vatre).
@@ -114,7 +118,7 @@ Nova verzija se instalira preko stare, rezultati se ne čuvaju između igara.
 
 ## Google Play
 
-Trenutna verzija je **3.0** (broj verzije 22, Google Mobile Ads SDK 25.5.0, androidx.activity 1.10.1): radi na Androidu 7.0 i novijim, cilja Android 16 (API 36), a dugme „nazad“ radi i na Androidu 16. Fontovi su u aplikaciji.
+Trenutna verzija je **3.1** (broj verzije 23, Google Mobile Ads SDK 25.5.0, androidx.activity 1.10.1): radi na Androidu 7.0 i novijim, cilja Android 16 (API 36), a dugme „nazad“ radi i na Androidu 16. Fontovi su u aplikaciji.
 
 **Reklame (AdMob).** Na dnu ekrana je reklamni baner preko cele širine, a igra je iznad njega. Igru igraju i deca, pa su reklame podešene po pravilima Google Play-a za porodice: bez personalizacije, samo za sve uzraste (G), bez reklamnog ID-ja i bez Privacy Sandbox dozvola. Internet treba samo za reklame.
 

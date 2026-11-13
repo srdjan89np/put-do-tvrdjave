@@ -937,6 +937,10 @@ function updateEnding(){
       info:tr('Princ je proglasio '+(c.acc||c.name)+' '+gw(c,'vitezom','vitežicom')+', a kralj i kraljica su vas dočekali u tvrđavi. +2000 poena','The prince knighted '+c.name+', and the King and Queen welcomed you in the castle. +2000 points'),btn:tr('Dalje','Next'),go:()=>{hideCard();endAfter();}});}
 }
 function prepareTurn(i,reason,prev){
+  if(NET&&NET.on){
+    if(reason!=='start'&&!NET.applying)netSend({t:'turn',st:netState(),cur:i,reason,prev});
+    if(players[i].dev!==NET.me){cur=i;return netWait(reason,prev);}
+  }
   cur=i;const pl=P();
   lvl=build(LEVELS[pl.level]);particles=[];spawnHero();state='card';pl.mag=0;pl.inv2=0;
   if(easy){for(const e of lvl.enemies){e.vx*=0.6;e.spd=0.6;}for(const s of lvl.saws)s.per*=1.5;}
@@ -960,6 +964,7 @@ function prepareTurn(i,reason,prev){
     btn:tr('Kreni!','Go!'),go:()=>{hideCard();state='play';}});
 }
 function gameOver(){
+  if(NET&&NET.on&&!NET.applying)netSend({t:'over',st:netState()});
   state='over';
   const ps=players;const best=Math.max(...ps.map(p=>p.score));
   const winners=ps.filter(p=>p.score===best);
@@ -974,7 +979,7 @@ function gameOver(){
   rows.forEach(r=>{if(r.stars)r.line+=' · ★ '+r.stars;});
   showCard({kick:ps.length===1&&ps[0].done?tr('Svih 10 nivoa pređeno','All 10 levels complete'):tr('Kraj igre','Game over'),title,color,heroes,rows,
     table:getScores(),tableNew:ids,tableTitle:tr('Najbolji rezultati','Best scores'),
-    btn:tr('Igraj ponovo','Play again'),go:()=>startGame(setup),alt:{label:tr('Glavni meni','Main menu'),fn:()=>showTitle()}});
+    btn:NET?tr('Glavni meni','Main menu'):tr('Igraj ponovo','Play again'),go:NET?()=>showTitle():()=>startGame(setup),alt:NET?null:{label:tr('Glavni meni','Main menu'),fn:()=>showTitle()}});
   if(ids.some(id=>scoreRank(id)===1))sfx('life');
 }
 const TEST_HORSE=false; // true = igrač kreće na konju (za testiranje)
@@ -1008,16 +1013,138 @@ function startGame(s){
   setup=s;const d=s.diff||(s.easy?'easy':'normal');easy=d==='easy';knight=d==='knight';hard=d==='hard'||knight;
   players=s.order.map(i=>({c:HEROES[i],idx:i,lives:easy?5:knight?1:hard?2:3,shield:easy,score:0,coins:0,level:START_LEVEL,cp:null,done:false,weapon:TEST_HORSE?2:0,armor:TEST_HORSE,horse:TEST_HORSE,
     stars:0,lastStars:0,gems:new Set(),lost:false,mag:0,inv2:0,dbl:false}));
+  if(s.devs)players.forEach((p,i)=>p.dev=s.devs[i]);
   hudKey='';cur=0;rewardUsed=false;prepareTurn(0,'start',null);
 }
 function showTitle(){
+  if(NET)netStop();
   state='title';players=null;hudKey='';lvl=build(LEVELS[0]);cam=0;
   showCard({kick:tr('Jedan ili više igrača · ','One or more players · ')+LEVELS.length+tr(' nivoa',' levels'),title:tr('Put do Kraljeve tvrđave',"Road to the King's Castle"),color:'#ffc62b',heroes:HEROES,
     info:tr('Mali vitezovi kreću u avanturu. Skupljaj drago kamenje, skači na gobline, otvaraj sanduke i stigni do Kraljeve tvrđave.',"Little knights set off on an adventure. Collect gems, jump on goblins, open chests and reach the King's Castle."),
     hint:matchMedia('(hover:hover) and (pointer:fine)').matches?tr('← → kretanje · ↑ ili razmak skok · {X} udaraj mačem (sa praćkom: pucaj) · {P} pauza','← → move · ↑ or space jump · X sword (with a slingshot: shoot) · P pause'):tr('◀ ▶ kretanje, SKOK skok, UDARAJ mačem (kad pokupiš praćku: PUCAJ). Najbolje se igra kad okreneš telefon.','◀ ▶ move, JUMP to jump, HIT with the sword (with a slingshot: SHOOT). Best played with the phone sideways.'),
     btn:tr('Izaberi igrače','Choose players'),go:()=>choosePlayers([]),
     record:bestLine(),
-    links:[{label:'◆ '+bank+' · '+tr('Kostimi','Costumes'),fn:()=>showCostumes()},{label:tr('Najbolji rezultati','Best scores'),fn:()=>showScores()},{label:lang==='en'?'Српски':'{English}',fn:()=>setLang(lang==='en'?'sr':'en')}]});
+    links:[...(netOK()?[{label:tr('Igra preko Blututa','Bluetooth game'),fn:()=>netMenu()}]:[]),{label:'◆ '+bank+' · '+tr('Kostimi','Costumes'),fn:()=>showCostumes()},{label:tr('Najbolji rezultati','Best scores'),fn:()=>showScores()},{label:lang==='en'?'Српски':'{English}',fn:()=>setLang(lang==='en'?'sr':'en')}]});
+}
+/* ---------- Igra preko Blututa: svako na svom telefonu, igra se na smenu ---------- */
+let NET=null;
+function netOK(){try{return !!(window.AndroidNet&&window.AndroidNet.available());}catch(e){return false;}}
+function netSend(m,only){if(!NET)return;const d=JSON.stringify(m);
+  try{if(NET.role==='host'){if(only)AndroidNet.send(only,d);else AndroidNet.send('*',d);}else if(NET.hostId)AndroidNet.send(NET.hostId,d);}catch(e){}}
+function netStop(){try{AndroidNet.stop();}catch(e){}NET=null;window.onNet=null;}
+function netState(){return {p:players.map(p=>({lives:p.lives,score:p.score,coins:p.coins,level:p.level,cp:p.cp,done:p.done,weapon:p.weapon,armor:p.armor,horse:p.horse,
+  stars:p.stars,lastStars:p.lastStars,lost:p.lost,shield:p.shield,dbl:p.dbl,gems:[...p.gems]})),ru:rewardUsed};}
+function netApply(st){players.forEach((p,i)=>{const q=st.p[i];if(q)Object.assign(p,q,{gems:new Set(q.gems||[])});});rewardUsed=!!st.ru;hudKey='';}
+function netMenu(){
+  showCard({kick:tr('Igra preko Blututa','Bluetooth game'),title:tr('Svako na svom telefonu','Everyone on their own phone'),color:'#4fa3ff',
+    info:tr('Telefoni treba da budu blizu jedan drugog. Igra se na smenu, kao i na jednom telefonu, samo što svako igra na svom.','Phones need to be close to each other. You take turns, just like on one phone, but everyone plays on their own.'),
+    options:[{label:tr('Napravi igru','Host a game'),sub:tr('ovaj telefon je domaćin','this phone is the host'),color:'#4fa3ff',fn:()=>netPickHero('host')},
+             {label:tr('Pridruži se','Join a game'),sub:tr('traži igru u blizini','look for a game nearby'),color:'#3fbf6a',fn:()=>netPickHero('join')}],
+    alt:{label:tr('Nazad','Back'),fn:()=>showTitle()}});
+}
+function netPickHero(role){
+  showCard({kick:tr('Igra preko Blututa','Bluetooth game'),title:tr('Ko igra na ovom telefonu?','Who plays on this phone?'),color:'#4fa3ff',
+    options:HEROES.map((c,i)=>({label:c.name,sub:tr('dodirni za izbor','tap to pick'),hero:c,color:c.jacket,fn:()=>role==='host'?netHost(i):netJoin(i)})),
+    alt:{label:tr('Nazad','Back'),fn:()=>netMenu()}});
+}
+function netMsg(kick,title,info,back){showCard({kick,title,color:'#4fa3ff',info,btn:tr('U redu','OK'),go:back||(()=>showTitle())});}
+function netError(why){
+  const txt=why==='permission'?tr('Bez dozvole za uređaje u blizini telefoni ne mogu da se povežu. Dozvolu možeš da uključiš u podešavanjima telefona.','Without the nearby devices permission the phones cannot connect. You can turn it on in the phone settings.')
+    :why==='unavailable'?tr('Igra preko Blututa radi na Androidu 13 i novijim.','Bluetooth play works on Android 13 and newer.')
+    :tr('Blutut ili Wi‑Fi nisu uključeni, ili veza nije uspela. Uključi ih i pokušaj ponovo.','Bluetooth or Wi‑Fi is off, or the connection failed. Turn them on and try again.');
+  netStop();netMsg(tr('Igra preko Blututa','Bluetooth game'),tr('Ne može da se poveže','Cannot connect'),txt);
+}
+function netLost(){
+  const inGame=NET&&NET.on;netStop();
+  if(inGame){players=null;hudKey='';}
+  netMsg(tr('Igra preko Blututa','Bluetooth game'),tr('Veza je prekinuta','Connection lost'),tr('Jedan od telefona je izašao iz igre ili je predaleko.','One of the phones left the game or is too far away.'));
+}
+/* domaćin */
+function netHost(h){
+  NET={role:'host',me:'H',myHero:h,lobby:[{dev:'H',hero:h}],on:false};window.onNet=netEvent;
+  try{AndroidNet.host(HEROES[h].name);}catch(e){return netError('unavailable');}
+  netLobby();
+}
+function netLobby(){
+  if(!NET)return;
+  const host=NET.role==='host',L=NET.lobby||[];
+  showCard({kick:tr('Blutut · ','Bluetooth · ')+(host?tr('domaćin','host'):tr('povezan','connected')),title:L.length>1?tr('Igrači su tu!','Players are here!'):tr('Čekamo igrače…','Waiting for players…'),color:'#4fa3ff',
+    info:host?tr('Na drugim telefonima izaberite „Igra preko Blututa“ → „Pridruži se“. Može do 4 igrača.','On the other phones choose “Bluetooth game” → “Join a game”. Up to 4 players.')
+             :tr('Domaćin će uskoro pokrenuti igru.','The host will start the game soon.'),
+    options:L.map((x,k)=>({label:HEROES[x.hero].name,sub:x.dev===NET.me?tr('ovaj telefon','this phone'):x.dev==='H'?tr('domaćin','host'):tr('povezan ✓','connected ✓'),hero:HEROES[x.hero],color:HEROES[x.hero].jacket,badge:k+1,sel:true,fn:()=>{}})),
+    btn:host&&L.length>1?tr('Kreni!','Start!'):'',go:host&&L.length>1?()=>netChooseDiff():null,
+    alt:{label:tr('Otkaži','Cancel'),fn:()=>showTitle()}});
+}
+function netChooseDiff(){
+  const go=d=>{lastDiff=d;store.set('ptv-tezina',d);try{AndroidNet.stopFinding();}catch(e){}const m={t:'start',lobby:NET.lobby,diff:d};netSend(m);netBegin(m);};
+  showCard({kick:tr('Težina','Difficulty'),title:tr('Kako igramo?','How hard?'),color:'#ffc62b',
+    options:[{label:tr('Lako','Easy'),sub:tr('5 života · štit','5 lives · shield'),color:'#7ddc6a',sel:lastDiff==='easy',fn:()=>go('easy')},
+             {label:tr('Normalno','Normal'),sub:tr('3 života','3 lives'),color:'#ffc62b',sel:lastDiff==='normal',fn:()=>go('normal')},
+             {label:tr('Teško','Hard'),sub:tr('2 života','2 lives'),color:'#ff6b5e',sel:lastDiff==='hard',fn:()=>go('hard')},
+             {label:tr('Viteški','Knightly'),sub:tr('1 život','1 life'),color:'#b46bff',sel:lastDiff==='knight',fn:()=>go('knight')}],
+    focus:['easy','normal','hard','knight'].indexOf(lastDiff),alt:{label:tr('Nazad','Back'),fn:()=>netLobby()}});
+}
+function netBegin(m){
+  NET.on=true;NET.lobby=m.lobby;
+  startGame({order:m.lobby.map(x=>x.hero),diff:m.diff,devs:m.lobby.map(x=>x.dev)});
+}
+/* igrač koji se pridružuje */
+function netJoin(h){
+  NET={role:'join',myHero:h,found:[],on:false};window.onNet=netEvent;
+  try{AndroidNet.join(HEROES[h].name);}catch(e){return netError('unavailable');}
+  netSearch();
+}
+function netSearch(){
+  if(!NET)return;
+  showCard({kick:tr('Blutut · pridruži se','Bluetooth · join'),title:NET.found.length?tr('Izaberi igru','Pick a game'):tr('Tražim igru u blizini…','Looking for a game nearby…'),color:'#3fbf6a',
+    info:NET.found.length?tr('Dodirni igru kojoj želiš da se pridružiš.','Tap the game you want to join.'):tr('Na drugom telefonu izaberite „Napravi igru“.','On the other phone choose “Host a game”.'),
+    options:NET.found.map(f=>({label:tr('Igra: ','Game: ')+f.name,sub:tr('dodirni za povezivanje','tap to connect'),color:'#3fbf6a',fn:()=>{NET.hostId=f.id;try{AndroidNet.connect(f.id,HEROES[NET.myHero].name);}catch(e){}
+      showCard({kick:tr('Blutut','Bluetooth'),title:tr('Povezujem se…','Connecting…'),color:'#3fbf6a',alt:{label:tr('Otkaži','Cancel'),fn:()=>showTitle()}});}})),
+    alt:{label:tr('Otkaži','Cancel'),fn:()=>showTitle()}});
+}
+/* događaji sa Android strane */
+function netEvent(ev){
+  if(!NET)return;
+  const host=NET.role==='host';
+  if(ev.type==='error')return netError(ev.data);
+  if(ev.type==='found'){if(!host&&!NET.hostId&&!NET.found.some(f=>f.id===ev.id)){NET.found.push({id:ev.id,name:ev.name||'?'});netSearch();}return;}
+  if(ev.type==='lost'){if(!host&&!NET.hostId){NET.found=NET.found.filter(f=>f.id!==ev.id);netSearch();}return;}
+  if(ev.type==='failed'){if(!host){NET.hostId=null;netSearch();}return;}
+  if(ev.type==='connected'){if(!host)netSend({t:'hello',hero:NET.myHero});return;}
+  if(ev.type==='disconnected'){
+    if(host&&!NET.on){NET.lobby=NET.lobby.filter(x=>x.dev!==ev.id);netSend({t:'lobby',lobby:NET.lobby});netLobby();return;}
+    return netLost();
+  }
+  if(ev.type!=='message')return;
+  let m;try{m=JSON.parse(ev.data);}catch(e){return;}
+  if(host){
+    if(m.t==='hello'){
+      if(NET.on||NET.lobby.length>=4){netSend({t:'full'},ev.id);return;}
+      let h=m.hero;const used=NET.lobby.map(x=>x.hero);if(used.includes(h))h=[0,1,2,3].find(k=>!used.includes(k));
+      NET.lobby.push({dev:ev.id,hero:h});
+      netSend({t:'welcome',me:ev.id,lobby:NET.lobby},ev.id);netSend({t:'lobby',lobby:NET.lobby});netLobby();return;
+    }
+    // poruke od igrača prosleđuju se ostalima
+    if(m.t==='turn'||m.t==='over'){for(const x of NET.lobby)if(x.dev!=='H'&&x.dev!==ev.id){try{AndroidNet.send(x.dev,ev.data);}catch(e){}}netRemote(m);}
+    return;
+  }
+  if(m.t==='welcome'){NET.me=m.me;NET.lobby=m.lobby;netLobby();return;}
+  if(m.t==='lobby'){NET.lobby=m.lobby;if(!NET.on)netLobby();return;}
+  if(m.t==='full'){netStop();return netMsg(tr('Blutut','Bluetooth'),tr('Igra je već puna','The game is full'),tr('U ovoj igri već ima 4 igrača ili je počela.','This game already has 4 players or has started.'));}
+  if(m.t==='start'){return netBegin(m);}
+  if(m.t==='turn'||m.t==='over')netRemote(m);
+}
+function netRemote(m){
+  if(!NET||!NET.on||!players)return;
+  netApply(m.st);NET.applying=true;
+  try{if(m.t==='over')gameOver();else prepareTurn(m.cur,m.reason,m.prev);}finally{NET.applying=false;}
+}
+function netWait(reason,prev){
+  const pl=P();lvl=build(LEVELS[Math.min(pl.level,LEVELS.length-1)]);particles=[];spawnHero();state='card';cam=0;
+  const me=players.find(p=>p.dev===NET.me);
+  showCard({kick:tr('Na redu je ','Now playing: ')+pl.c.name,title:me&&me.lives>0&&!me.done?tr('Čekaj svoj red','Wait for your turn'):tr('Navijaj!','Cheer them on!'),color:pl.c.jacket,heroes:[pl.c],
+    info:tr(pl.c.name+' sada igra na svom telefonu. Kad izgubi život ili pređe nivo, igra prelazi na sledećeg igrača.',pl.c.name+' is playing on their phone now. When they lose a life or finish a level, the next player is up.'),
+    hint:players.map(p=>p.c.name+': '+tr('nivo ','level ')+(p.done?'★':p.level+1)+', '+p.score+tr(' poena',' pts')).join(' | ')});
 }
 function setLang(l){lang=l;store.set('ptv-jezik',l);applyStatic();hudKey='';showTitle();}
 let lastPick=[0];

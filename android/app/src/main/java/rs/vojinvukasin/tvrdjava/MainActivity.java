@@ -1,7 +1,9 @@
 package rs.vojinvukasin.tvrdjava;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Build;
@@ -19,6 +21,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.os.Handler;
+import android.os.Looper;
 import android.window.OnBackInvokedDispatcher;
 
 import com.google.android.gms.ads.AdError;
@@ -31,6 +35,28 @@ import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.RequestConfiguration;
 import com.google.android.gms.ads.rewarded.RewardedAd;
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.nearby.Nearby;
+import com.google.android.gms.nearby.connection.AdvertisingOptions;
+import com.google.android.gms.nearby.connection.ConnectionInfo;
+import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
+import com.google.android.gms.nearby.connection.ConnectionResolution;
+import com.google.android.gms.nearby.connection.ConnectionsClient;
+import com.google.android.gms.nearby.connection.ConnectionsStatusCodes;
+import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
+import com.google.android.gms.nearby.connection.DiscoveryOptions;
+import com.google.android.gms.nearby.connection.EndpointDiscoveryCallback;
+import com.google.android.gms.nearby.connection.Payload;
+import com.google.android.gms.nearby.connection.PayloadCallback;
+import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
+import com.google.android.gms.nearby.connection.Strategy;
+
+import org.json.JSONObject;
+
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Igrica "Put do Kraljeve tvrđave" u WebView-u, sa reklamnim banerom (AdMob) na dnu ekrana
@@ -44,6 +70,14 @@ public class MainActivity extends Activity {
     private AdView adView;
     private volatile RewardedAd rewarded;
     private boolean rewardedLoading = false;
+
+    // Igra preko Blututa (Google Nearby Connections): telefoni u blizini, bez interneta.
+    private static final String NET_SERVICE = "rs.vojinvukasin.tvrdjava.igra";
+    private static final int NET_PERM_REQ = 77;
+    private ConnectionsClient net;
+    private final List<String> netPeers = new ArrayList<>();
+    private String netPendingMode = null, netPendingName = null;
+    private final Handler ui = new Handler(Looper.getMainLooper());
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -73,6 +107,7 @@ public class MainActivity extends Activity {
         web.setWebViewClient(new WebViewClient());
         web.setWebChromeClient(new WebChromeClient());
         web.addJavascriptInterface(new AdsBridge(), "AndroidAds");
+        web.addJavascriptInterface(new NetBridge(), "AndroidNet");
 
         // Igra gore, baner dole.
         LinearLayout root = new LinearLayout(this);
@@ -195,6 +230,167 @@ public class MainActivity extends Activity {
         adView.loadAd(new AdRequest.Builder().build());
     }
 
+    /* ---------- Igra preko Blututa ---------- */
+
+    /** Radi na Androidu 13 i novijim (bez dozvole za lokaciju), uz Google Play usluge. */
+    private boolean netAvailable() {
+        return Build.VERSION.SDK_INT >= 33 && GoogleApiAvailability.getInstance()
+                .isGooglePlayServicesAvailable(this) == ConnectionResult.SUCCESS;
+    }
+
+    private String[] netPermissions() {
+        return new String[]{Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_ADVERTISE,
+                Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.NEARBY_WIFI_DEVICES};
+    }
+
+    private boolean netHasPermissions() {
+        for (String p : netPermissions())
+            if (checkSelfPermission(p) != PackageManager.PERMISSION_GRANTED) return false;
+        return true;
+    }
+
+    private void netEvent(String type, String id, String name, String data) {
+        try {
+            JSONObject o = new JSONObject();
+            o.put("type", type);
+            if (id != null) o.put("id", id);
+            if (name != null) o.put("name", name);
+            if (data != null) o.put("data", data);
+            final String js = "window.onNet&&window.onNet(" + o + ")";
+            ui.post(() -> web.evaluateJavascript(js, null));
+        } catch (Exception ignored) {
+        }
+    }
+
+    private final PayloadCallback netPayload = new PayloadCallback() {
+        @Override
+        public void onPayloadReceived(String id, Payload payload) {
+            if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null)
+                netEvent("message", id, null, new String(payload.asBytes(), StandardCharsets.UTF_8));
+        }
+
+        @Override
+        public void onPayloadTransferUpdate(String id, PayloadTransferUpdate update) {
+        }
+    };
+
+    private final ConnectionLifecycleCallback netLife = new ConnectionLifecycleCallback() {
+        @Override
+        public void onConnectionInitiated(String id, ConnectionInfo info) {
+            net.acceptConnection(id, netPayload);
+        }
+
+        @Override
+        public void onConnectionResult(String id, ConnectionResolution result) {
+            if (result.getStatus().getStatusCode() == ConnectionsStatusCodes.STATUS_OK) {
+                if (!netPeers.contains(id)) netPeers.add(id);
+                if ("join".equals(netPendingMode)) net.stopDiscovery();
+                netEvent("connected", id, null, null);
+            } else {
+                netEvent("failed", id, null, null);
+            }
+        }
+
+        @Override
+        public void onDisconnected(String id) {
+            netPeers.remove(id);
+            netEvent("disconnected", id, null, null);
+        }
+    };
+
+    private final EndpointDiscoveryCallback netFound = new EndpointDiscoveryCallback() {
+        @Override
+        public void onEndpointFound(String id, DiscoveredEndpointInfo info) {
+            netEvent("found", id, info.getEndpointName(), null);
+        }
+
+        @Override
+        public void onEndpointLost(String id) {
+            netEvent("lost", id, null, null);
+        }
+    };
+
+    private void netStart(String mode, String name) {
+        if (!netAvailable()) { netEvent("error", null, null, "unavailable"); return; }
+        netPendingMode = mode;
+        netPendingName = name;
+        if (!netHasPermissions()) { requestPermissions(netPermissions(), NET_PERM_REQ); return; }
+        if (net == null) net = Nearby.getConnectionsClient(this);
+        netStopAll();
+        netPendingMode = mode;
+        if ("host".equals(mode)) {
+            net.startAdvertising(name, NET_SERVICE, netLife,
+                    new AdvertisingOptions.Builder().setStrategy(Strategy.P2P_STAR).build())
+                    .addOnSuccessListener(v -> netEvent("ready", null, null, "host"))
+                    .addOnFailureListener(e -> netEvent("error", null, null, "advertise"));
+        } else {
+            net.startDiscovery(NET_SERVICE, netFound,
+                    new DiscoveryOptions.Builder().setStrategy(Strategy.P2P_STAR).build())
+                    .addOnSuccessListener(v -> netEvent("ready", null, null, "join"))
+                    .addOnFailureListener(e -> netEvent("error", null, null, "discover"));
+        }
+    }
+
+    private void netStopAll() {
+        if (net == null) return;
+        net.stopAdvertising();
+        net.stopDiscovery();
+        net.stopAllEndpoints();
+        netPeers.clear();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int code, String[] perms, int[] results) {
+        super.onRequestPermissionsResult(code, perms, results);
+        if (code != NET_PERM_REQ) return;
+        if (netHasPermissions() && netPendingMode != null) netStart(netPendingMode, netPendingName);
+        else netEvent("error", null, null, "permission");
+    }
+
+    /** Most između igre (JavaScript) i Nearby veze. */
+    private class NetBridge {
+        @JavascriptInterface
+        public boolean available() {
+            return netAvailable();
+        }
+
+        @JavascriptInterface
+        public void host(String name) {
+            ui.post(() -> netStart("host", name));
+        }
+
+        @JavascriptInterface
+        public void join(String name) {
+            ui.post(() -> netStart("join", name));
+        }
+
+        @JavascriptInterface
+        public void connect(String id, String name) {
+            ui.post(() -> { if (net != null) net.requestConnection(name, id, netLife)
+                    .addOnFailureListener(e -> netEvent("failed", id, null, null)); });
+        }
+
+        @JavascriptInterface
+        public void stopFinding() {
+            ui.post(() -> { if (net != null) { net.stopAdvertising(); net.stopDiscovery(); } });
+        }
+
+        @JavascriptInterface
+        public void send(String id, String data) {
+            ui.post(() -> {
+                if (net == null || netPeers.isEmpty()) return;
+                Payload p = Payload.fromBytes(data.getBytes(StandardCharsets.UTF_8));
+                if ("*".equals(id)) net.sendPayload(new ArrayList<>(netPeers), p);
+                else if (netPeers.contains(id)) net.sendPayload(id, p);
+            });
+        }
+
+        @JavascriptInterface
+        public void stop() {
+            ui.post(MainActivity.this::netStopAll);
+        }
+    }
+
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -261,6 +457,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        netStopAll();
         if (adView != null) adView.destroy();
         if (web != null) web.destroy();
         super.onDestroy();
