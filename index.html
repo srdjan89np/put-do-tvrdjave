@@ -251,10 +251,10 @@ const tr=(s,e)=>lang==='en'?e:s;
 let bank=Math.max(0,store.get('ptv-kasica',0)|0);
 function addBank(n){bank=Math.max(0,bank+n);store.set('ptv-kasica',bank);}
 const COSTUMES=[
-  {id:'pirat',slot:'hat',sr:'Gusarski šešir',en:'Pirate hat',price:150},
-  {id:'stit',slot:'shield',sr:'Štit sa lavom',en:'Lion shield',price:250},
-  {id:'kruna',slot:'hat',sr:'Kruna',en:'Crown',price:400},
-  {id:'plast',slot:'cape',sr:'Zlatni plašt',en:'Golden cape',price:600}
+  {id:'pirat',slot:'hat',sr:'Gusarski šešir',en:'Pirate hat',price:800},
+  {id:'stit',slot:'shield',sr:'Štit sa lavom',en:'Lion shield',price:1500},
+  {id:'kruna',slot:'hat',sr:'Kruna',en:'Crown',price:2500},
+  {id:'plast',slot:'cape',sr:'Zlatni plašt',en:'Golden cape',price:4000}
 ];
 let owned=store.get('ptv-kostimi-kupljeni',[]);if(!Array.isArray(owned))owned=[];
 {const wear=store.get('ptv-kostimi',{})||{};
@@ -523,7 +523,7 @@ function moveThings(L){
 }
 
 /* ---------- State ---------- */
-let lvl=build(LEVELS[0]),hero=null,players=null,cur=0,state='title',cam=0,VW=640,scale=1,dpr=1,tick=0,particles=[],flagY=0,dieT=0,easy=false;
+let lvl=build(LEVELS[0]),hero=null,players=null,cur=0,state='title',cam=0,VW=640,scale=1,dpr=1,tick=0,particles=[],flagY=0,dieT=0,easy=false,hard=false;
 const K={l:false,r:false,j:false,jp:false,s:false,sp:false,a:false,ap:false};
 
 /* ---------- Audio ---------- */
@@ -662,12 +662,7 @@ function updateHero(){
   }
   if(h.ground)h.dist+=Math.abs(h.vx);else h.dist=0;
 
-  if(h.y>H+(easy?4:40)){
-    if(!easy)return die();
-    // lako: iz provalije i lave vitez odskoči kao sa opruge
-    h.y=H+4;h.vy=SPRING-2.5;h.jumping=false;h.dj=false;h.ride=null;h.inv=Math.max(h.inv,40);sfx('spring');
-    puff(h.x+h.w/2,H-6,14,'#9fd3ff');popText(h.x+h.w/2,H-60,tr('Hop!','Boing!'),'#9fd3ff');
-  }
+  if(h.y>H+40)return die();
   if(h.inv>0)h.inv--;
   {const q=P();if(q.mag>0)q.mag--;if(q.inv2>0){q.inv2--;if(tick%4===0)particles.push({type:'dot',x:h.x+Math.random()*h.w,y:h.y+Math.random()*h.h,vx:0,vy:-0.6,life:22,max:22,col:'#d6efff',r:2});}}
   if(h.inv<=0&&!(P().inv2>0)&&touchHazard(h))return hurt();
@@ -782,15 +777,15 @@ function updateBoss(){
   if(!b.active){if(h.x+h.w>b.x1-T*3)b.active=true;else return;}
   if(b.hitT>0)b.hitT--;
   if(b.fireT>0)b.fireT--;
-  const sp=(easy?0.45:0.85)*(b.lv===2?1.35:1),dx=(h.x+h.w/2)-(b.x+b.w/2);
+  const sp=(easy?0.45:hard?1.15:0.85)*(b.lv===2?1.35:1),dx=(h.x+h.w/2)-(b.x+b.w/2);
   if(b.hitT>32)b.vx=-Math.sign(dx||1)*3.2;
   else if(b.fireT>0)b.vx*=0.85;
   else{b.face=dx>0?1:-1;b.vx=Math.abs(dx)>40?b.face*sp:0;}
   b.x=Math.max(b.x1,Math.min(b.x2-b.w,b.x+b.vx));
   b.vy=Math.min(b.vy+GRAV*0.8,12);b.y+=b.vy;const gy=12*T-b.h;
   if(b.y>=gy){b.y=gy;b.vy=0;if(!easy&&b.t%200===120)b.vy=-8.5;}
-  const every=easy?210:(b.lv===2?105:140);
-  if(b.t%every===0){b.fireT=36;const n=easy?1:b.lv===2?3:2;
+  const every=easy?210:(b.lv===2?105:140)*(hard?0.7:1)|0;
+  if(b.t%every===0){b.fireT=36;const n=easy?1:(b.lv===2?3:2)+(hard?1:0);
     for(let k=0;k<n;k++)lvl.fire.push({x:b.x+b.w/2+b.face*44,y:b.y+12,vx:b.face*(easy?2.8:3.8)*(1-k*0.22),vy:-1.8-k*1.6,life:170});sfx('fire');}
   if(ov(h,b,6)&&!(P().inv2>0)){
     if(h.vy>0&&h.y+h.h-b.y<18+h.vy){hitBoss();h.vy=K.j?-12:-9;h.jumping=K.j;}
@@ -817,6 +812,12 @@ function setRide(on){
 }
 function hurt(){
   const pl=P(),h=hero;
+  if(pl.shield){
+    pl.shield=false;h.inv=110;h.vy=-8;h.jumping=false;h.ground=false;h.ride=null;
+    sfx('crack');popText(h.x+h.w/2,h.y-8,tr('Štit te je sačuvao!','The shield saved you!'),'#9fd8ff');
+    for(let i=0;i<22;i++){const an=i/22*Math.PI*2;particles.push({type:'dot',x:h.x+h.w/2,y:h.y+h.h/2,vx:Math.cos(an)*4,vy:Math.sin(an)*4,life:30,max:30,col:i%2?'#9fd8ff':'#ffffff',r:2.5});}
+    return;
+  }
   if(pl.horse){
     pl.horse=false;particles.push({type:'horse',x:h.x+h.w/2,y:h.y+h.h,vx:-h.face*5,vy:0,face:-h.face,life:70,max:70,c:pl.c});
     setRide(false);h.inv=100;h.vy=-8;h.jumping=false;h.ground=false;h.ride=null;
@@ -834,7 +835,7 @@ function die(){
 function alive(i){return players[i].lives>0&&!players[i].done;}
 function pick(){const n=players.length;for(let k=1;k<=n;k++){const i=(cur+k)%n;if(alive(i))return i;}return -1;}
 function handleDeath(){
-  const prev=cur;P().lives--;P().lost=true;
+  const prev=cur;P().lives--;P().lost=true;P().shield=easy;
   if(P().lives<=0&&!rewardUsed&&rewardReady())return offerReward(prev);
   afterDeath(prev);
 }
@@ -858,7 +859,7 @@ function watchReward(prev){
   showCard({kick:tr('Reklama','Ad'),title:tr('Samo trenutak…','Just a moment…'),color:'#ffc62b',info:tr('Reklama se učitava.','The ad is loading.')});
   let done=false;
   const finish=ok=>{if(done)return;done=true;clearTimeout(rewardTimer);window.onRewardResult=null;
-    if(ok){P().lives=1;sfx('life');prepareTurn(cur,'reward',prev);}
+    if(ok){P().lives=1;P().shield=easy;sfx('life');prepareTurn(cur,'reward',prev);}
     else showCard({kick:tr('Reklama','Ad'),title:tr('Reklama nije dostupna','The ad is not available'),color:'#ffc62b',info:tr('Ovaj put nema dodatnog života.','No extra life this time.'),btn:tr('U redu','OK'),go:()=>afterDeath(prev)});};
   window.onRewardResult=ok=>finish(!!ok);
   rewardTimer=setTimeout(()=>finish(false),90000);
@@ -901,34 +902,45 @@ function finishLevel(){
   const st=1+(ratio>=0.4?1:0)+(ratio>=0.7&&!pl.lost?1:0);
   pl.stars+=st;pl.lastStars=st;addScore(st*100);pl.gems=new Set();pl.lost=false;
   pl.level++;pl.cp=null;
+  if(LEVELS[pl.level-1].boss===1&&pl.level<LEVELS.length){addScore(500);return startEnding(()=>prepareTurn(cur,'level',prev),'princess');}
   if(pl.level>=LEVELS.length){
     pl.done=true;addScore(2000);
     return startEnding(()=>{const n=pick();if(n<0)return gameOver();prepareTurn(n,'done',prev);});
   }
   prepareTurn(cur,'level',prev);
 }
-let endT=0,endAfter=null,fw=[],endCard=false;
-function startEnding(after){state='ending';endT=0;endAfter=after;fw=[];endCard=false;for(const k in K)K[k]=false;}
+let endT=0,endAfter=null,fw=[],endCard=false,endKind='final';
+function startEnding(after,kind){state='ending';endT=0;endAfter=after;fw=[];endCard=false;endKind=kind||'final';for(const k in K)K[k]=false;}
+function boom(x,y,cols){const col=cols[(Math.random()*cols.length)|0];
+  for(let i=0;i<36;i++){const a=i/36*Math.PI*2,sp=1.4+Math.random()*2.3;fw.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:60+Math.random()*25,max:85,col});}sfx('pop');}
 function updateEnding(){
-  endT++;
-  if(endT===70)sfx('win');
-  if(endT>200&&endT%22===0){
-    const x=60+Math.random()*(VW-120),y=40+Math.random()*120;
-    const cols=['#ffd75e','#ff7aa2','#7fe3ff','#ffffff',P().c.jacket,P().c.hat];const col=cols[(Math.random()*cols.length)|0];
-    for(let i=0;i<36;i++){const a=i/36*Math.PI*2,sp=1.4+Math.random()*2.3;fw.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:60+Math.random()*25,max:85,col});}
-    sfx('pop');
+  endT++;const c=P().c;
+  if(endKind==='princess'){
+    if(endT===130)sfx('life');
+    if(endT>180&&endT%9===0)fw.push({x:VW/2-40+Math.random()*80,y:H-140,vx:(Math.random()-.5)*0.6,vy:-0.9-Math.random()*0.5,life:90,max:90,col:'#ff7aa2',heart:true});
+    for(const p of fw){p.x+=p.vx+(p.heart?Math.sin((p.life+p.x)*0.08)*0.4:0);p.y+=p.vy;p.life--;}
+    fw=fw.filter(p=>p.life>0);
+    if(K.jp){K.jp=false;if(endT>30&&endT<360)endT=360;}
+    if(endT>=400&&!endCard){endCard=true;
+      showCard({kick:tr('Princeza je spasena!','The princess is saved!'),title:tr('Hvala, '+gw(c,'hrabri viteže','hrabra vitežice')+'!','Thank you, brave knight!'),color:'#ff7ab8',heroes:[c],
+        info:tr('Pobedio si velikog zmaja i oslobodio princezu. Ona te čeka u Kraljevoj tvrđavi. +500 poena','You beat the big dragon and freed the princess. She will wait for you at the King\'s Castle. +500 points').replace('Pobedio',gw(c,'Pobedio','Pobedila')),
+        btn:tr('Dalje','Next'),go:()=>{hideCard();endAfter();}});}
+    return;
   }
+  if(endT===232)sfx('win');
+  if(endT>240&&endT<600&&endT%22===0)boom(60+Math.random()*(VW-120),40+Math.random()*120,['#ffd75e','#ff7aa2','#7fe3ff','#ffffff',c.jacket,c.hat]);
   for(const p of fw){p.x+=p.vx;p.y+=p.vy;p.vy+=0.035;p.vx*=0.985;p.life--;}
   fw=fw.filter(p=>p.life>0);
-  if(K.jp){K.jp=false;if(endT>40&&endT<430)endT=430;}
-  if(endT>=520&&!endCard){endCard=true;const c=P().c;
+  if(K.jp){K.jp=false;if(endT>40&&endT<640)endT=640;}
+  if(endT>=720&&!endCard){endCard=true;
     showCard({kick:tr('Kraljeva tvrđava',"King's Castle"),title:tr(gw(c,'Pravi vitez!','Prava vitežica!'),'A true knight!'),color:c.jacket,heroes:[c],stars:P().lastStars,
-      info:tr('Kralj proglašava '+c.acc+' '+gw(c,'najhrabrijim vitezom','najhrabrijom vitežicom')+' kraljevstva. +2000 poena','The King names '+c.name+' the bravest knight in the kingdom. +2000 points'),btn:tr('Dalje','Next'),go:()=>{hideCard();endAfter();}});}
+      info:tr('Princ je proglasio '+(c.acc||c.name)+' '+gw(c,'vitezom','vitežicom')+', a kralj i kraljica su vas dočekali u tvrđavi. +2000 poena','The prince knighted '+c.name+', and the King and Queen welcomed you in the castle. +2000 points'),btn:tr('Dalje','Next'),go:()=>{hideCard();endAfter();}});}
 }
 function prepareTurn(i,reason,prev){
   cur=i;const pl=P();
   lvl=build(LEVELS[pl.level]);particles=[];spawnHero();state='card';pl.mag=0;pl.inv2=0;
   if(easy){for(const e of lvl.enemies){e.vx*=0.6;e.spd=0.6;}for(const s of lvl.saws)s.per*=1.5;}
+  if(hard){for(const e of lvl.enemies){e.vx*=1.35;e.spd=1.35;}for(const s of lvl.saws)s.per*=0.75;if(lvl.boss){lvl.boss.hp=lvl.boss.max=5;}}
   const pn=prev!=null?players[prev].c.name:'',nm=pl.c.name;
   const solo=players.length===1;
   let kick='',title=tr('Na redu: ','Your turn: ')+nm;
@@ -943,7 +955,7 @@ function prepareTurn(i,reason,prev){
   const LV=LEVELS[pl.level];
   showCard({kick,title,color:pl.c.jacket,heroes:[pl.c],stars:reason==='level'?pl.lastStars:0,
     info:tr(`Nivo ${pl.level+1} od ${LEVELS.length}: ${LV.name}`,`Level ${pl.level+1} of ${LEVELS.length}: ${LV.en}`)+(LV.theme==='zima'?tr(' (pazi, led je klizav!)',' (careful, the ice is slippery!)'):'')+(LV.boss?tr(' Na kraju te čeka veliki zmaj!',' A big dragon waits at the end!'):''),
-    hint:'♥ '+pl.lives+(pl.lives===1?tr(' život',' life'):tr(' života',' lives'))+(easy?tr(' · lako',' · easy'):'')+(pl.cp?tr(' · krećeš od kontrolne tačke',' · starting from the checkpoint'):'')+(!solo&&reason==='start'?tr(' · redosled: ',' · order: ')+players.map(p=>p.c.name).join(' → '):''),
+    hint:'♥ '+pl.lives+(pl.lives===1?tr(' život',' life'):tr(' života',' lives'))+(easy?tr(' · lako · štit',' · easy · shield'):hard?tr(' · teško',' · hard'):'')+(pl.cp?tr(' · krećeš od kontrolne tačke',' · starting from the checkpoint'):'')+(!solo&&reason==='start'?tr(' · redosled: ',' · order: ')+players.map(p=>p.c.name).join(' → '):''),
     btn:tr('Kreni!','Go!'),go:()=>{hideCard();state='play';}});
 }
 function gameOver(){
@@ -992,8 +1004,8 @@ function showScores(back){
     table:a,btn:tr('Nazad','Back'),go:back||(()=>showTitle())});
 }
 function startGame(s){
-  setup=s;easy=!!s.easy;
-  players=s.order.map(i=>({c:HEROES[i],idx:i,lives:easy?5:3,score:0,coins:0,level:START_LEVEL,cp:null,done:false,weapon:TEST_HORSE?2:0,armor:TEST_HORSE,horse:TEST_HORSE,
+  setup=s;const d=s.diff||(s.easy?'easy':'normal');easy=d==='easy';hard=d==='hard';
+  players=s.order.map(i=>({c:HEROES[i],idx:i,lives:easy?5:hard?2:3,shield:easy,score:0,coins:0,level:START_LEVEL,cp:null,done:false,weapon:TEST_HORSE?2:0,armor:TEST_HORSE,horse:TEST_HORSE,
     stars:0,lastStars:0,gems:new Set(),lost:false,mag:0,inv2:0,dbl:false}));
   hudKey='';cur=0;rewardUsed=false;prepareTurn(0,'start',null);
 }
@@ -1017,14 +1029,15 @@ function choosePlayers(sel,focusIdx){
     btn:sel.length?tr('Dalje','Next'):'',go:sel.length?()=>{lastPick=sel.slice();chooseDifficulty(sel.slice());}:null,
     focus:focusIdx,alt:{label:tr('Nazad','Back'),fn:()=>showTitle()}});
 }
-let lastEasy=!!store.get('ptv-tezina',false);
+let lastDiff=(()=>{const v=store.get('ptv-tezina','normal');return v===true?'easy':v===false?'normal':['easy','normal','hard'].includes(v)?v:'normal';})();
 function chooseDifficulty(order){
-  const go=e=>{lastEasy=e;store.set('ptv-tezina',e);startGame({order,easy:e});};
+  const go=d=>{lastDiff=d;store.set('ptv-tezina',d);startGame({order,diff:d});};
   showCard({kick:tr('Težina','Difficulty'),title:tr('Kako igramo?','How hard?'),color:'#ffc62b',
-    info:tr('Lako je za najmlađe: 5 života, šiljci, testere i lava ne bole, neprijatelji su sporiji, a iz provalije te izbaci opruga.','Easy is for the youngest: 5 lives, spikes, saws and lava do not hurt, enemies are slower, and a spring bounces you out of pits.'),
-    options:[{label:tr('Normalno','Normal'),sub:tr('3 života','3 lives'),color:'#ffc62b',sel:!lastEasy,fn:()=>go(false)},
-             {label:tr('Lako','Easy'),sub:tr('za najmlađe · 5 života','for the youngest · 5 lives'),color:'#7ddc6a',sel:lastEasy,fn:()=>go(true)}],
-    focus:lastEasy?1:0,alt:{label:tr('Nazad','Back'),fn:()=>choosePlayers(order)}});
+    info:tr('Lako je za najmlađe, a Teško za najhrabrije vitezove.','Easy is for the youngest, Hard is for the bravest knights.'),
+    options:[{label:tr('Lako','Easy'),sub:tr('5 života · štit za svaki život · šiljci i lava ne bole','5 lives · a shield for every life · spikes and lava do not hurt'),color:'#7ddc6a',sel:lastDiff==='easy',fn:()=>go('easy')},
+             {label:tr('Normalno','Normal'),sub:tr('3 života','3 lives'),color:'#ffc62b',sel:lastDiff==='normal',fn:()=>go('normal')},
+             {label:tr('Teško','Hard'),sub:tr('2 života · brži neprijatelji · jači zmaj','2 lives · faster enemies · stronger dragon'),color:'#ff6b5e',sel:lastDiff==='hard',fn:()=>go('hard')}],
+    focus:['easy','normal','hard'].indexOf(lastDiff),alt:{label:tr('Nazad','Back'),fn:()=>choosePlayers(order)}});
 }
 function cosName(id){const k=COSTUMES.find(x=>x.id===id);return k?tr(k.sr,k.en):'';}
 function cosSummary(c){const a=[];if(c.cos.hat)a.push(cosName(c.cos.hat));if(c.cos.shield)a.push(cosName('stit'));if(c.cos.cape)a.push(cosName('plast'));return a.length?a.join(', '):tr('bez kostima','no costume');}
@@ -1169,14 +1182,14 @@ function updHud(){
   if(btnPause.hidden===showPause)btnPause.hidden=!showPause;
   if(!players){if(hudKey==='none')return;hudKey='none';setShootBtn(false);buildHud();return;}
   if(hudEls.length!==players.length||hudKey==='none'||hudKey==='')buildHud();
-  const k=players.map(p=>[p.lives,p.coins,p.score,p.level,p.done,p.weapon,p.armor,p.horse,p.mag>0,p.inv2>0,p.dbl].join()).join('|')+cur+state;
+  const k=players.map(p=>[p.lives,p.shield,p.coins,p.score,p.level,p.done,p.weapon,p.armor,p.horse,p.mag>0,p.inv2>0,p.dbl].join()).join('|')+cur+state;
   if(k===hudKey)return;hudKey=k;
   setShootBtn(!!P().weapon);
   players.forEach((p,i)=>{const el=hudEls[i];
     el.classList.toggle('on',i===cur&&state!=='over');el.classList.toggle('out',p.lives<=0);
     el.querySelector('.hearts').textContent=p.lives>0?'♥'.repeat(Math.min(p.lives,5))+(p.lives>5?'+':''):cyr(tr(gw(p.c,'ispao','ispala'),'out'));
     el.querySelector('.lv').textContent=cyr(p.done?tr('Kraj ★','Done ★'):tr('Nivo ','Level ')+(p.level+1));
-    el.querySelector('.coin').textContent=cyr('◆ '+p.coins+(p.weapon===2?tr(' · Super praćka',' · Super slingshot'):p.weapon?tr(' · Praćka',' · Slingshot'):'')+(p.armor?tr(' · Oklop',' · Armor'):'')+(p.horse?tr(' · Konj',' · Horse'):'')+(p.mag>0?' · Magnet':'')+(p.inv2>0?tr(' · Nevidljivost',' · Invisible'):'')+(p.dbl?tr(' · Dupli skok',' · Double jump'):''));
+    el.querySelector('.coin').textContent=cyr('◆ '+p.coins+(p.weapon===2?tr(' · Super praćka',' · Super slingshot'):p.weapon?tr(' · Praćka',' · Slingshot'):'')+(p.shield?tr(' · Štit',' · Shield'):'')+(p.armor?tr(' · Oklop',' · Armor'):'')+(p.horse?tr(' · Konj',' · Horse'):'')+(p.mag>0?' · Magnet':'')+(p.inv2>0?tr(' · Nevidljivost',' · Invisible'):'')+(p.dbl?tr(' · Dupli skok',' · Double jump'):''));
     el.querySelector('.sc').textContent=p.score;
   });
 }
@@ -1348,7 +1361,7 @@ function drawHero(g,c,x,y,face,walk,air,hurt,weapon,armor,swing,cosO){
   g.fillStyle='#f3c39b';rr(g,-7,2,14,11,4);g.fill();
   if(hurt){g.strokeStyle='#1a1a24';g.lineWidth=1.4;g.beginPath();g.moveTo(2.5,4.5);g.lineTo(6,8);g.moveTo(6,4.5);g.lineTo(2.5,8);g.stroke();}
   else{g.fillStyle='#1a1a24';g.fillRect(3,5.5,2.5,3);}
-  g.fillStyle='#ff9e9e';g.globalAlpha=.6;circ(g,1.5,10,1.6);g.globalAlpha=1;
+  {const a0=g.globalAlpha;g.fillStyle='#ff9e9e';g.globalAlpha=a0*.6;circ(g,1.5,10,1.6);g.globalAlpha=a0;}
   if(c.girl&&!hurt){g.fillStyle='#1a1a24';g.fillRect(5.5,4.6,1.4,1);}
   if(c.beard){g.fillStyle=c.hair;g.beginPath();g.moveTo(-2,8.5);g.lineTo(7.5,8.5);g.quadraticCurveTo(7,14.5,2.5,14.5);g.quadraticCurveTo(-2,14,-2,8.5);g.fill();g.fillStyle='#b5574a';g.fillRect(3,9.8,3,1);}
   else{g.fillStyle='#b5574a';g.fillRect(3,10.5,3,1.2);}
@@ -1379,7 +1392,95 @@ function drawKing(g,x,gy,t){
   g.fillStyle='#e23b3b';circ(g,0,-35.5,1.2);
   g.restore();
 }
+function drawPrince(g,x,gy,t,face,sw,walk){
+  g.save();g.translate(x,gy);g.scale(2*face,2);
+  const l=walk?Math.sin(t*0.35)*2.5:0;
+  g.fillStyle='#5b2a86';g.beginPath();g.moveTo(-5,-24);g.lineTo(-10,-5);g.lineTo(3,-5);g.lineTo(4,-24);g.fill();
+  g.fillStyle='#3a2416';g.fillRect(-5+l,-6,4,6);g.fillRect(1-l,-6,4,6);
+  g.fillStyle='#f2f2f2';g.fillRect(-5,-12,10,7);
+  g.fillStyle='#2e6fd8';rr(g,-7,-24,14,14,3);g.fill();
+  g.fillStyle='#ffd75e';g.fillRect(-7,-13,14,2);g.fillRect(-1,-24,2,11);
+  g.fillStyle='#f3c39b';rr(g,-5.5,-34,11,10,4);g.fill();
+  g.fillStyle='#6b3e1e';rr(g,-6,-35.5,12,5,2.5);g.fill();g.fillRect(-6,-33,2.5,5);
+  g.fillStyle='#1a1a24';g.fillRect(0.5,-30,1.5,2);g.fillRect(3.2,-30,1.5,2);
+  g.fillStyle='#ffd75e';g.beginPath();g.moveTo(-5,-35);g.lineTo(-5,-38);g.lineTo(-2.5,-36.5);g.lineTo(0,-39);g.lineTo(2.5,-36.5);g.lineTo(5,-38);g.lineTo(5,-35);g.fill();
+  g.save();g.translate(3,-21);g.rotate(sw);
+  g.fillStyle='#2e6fd8';rr(g,0,-1.6,7,3.2,1.6);g.fill();g.fillStyle='#f3c39b';circ(g,7.5,0,1.9);
+  g.fillStyle='#ffd75e';g.fillRect(8.5,-3.2,1.6,6.4);g.fillStyle='#e9ecf2';g.fillRect(10,-1,17,2);
+  g.beginPath();g.moveTo(27,-1);g.lineTo(30,0);g.lineTo(27,1);g.fill();g.restore();
+  g.restore();
+}
+function drawQueen(g,x,gy,t){
+  g.save();g.translate(x,gy);g.scale(2,2);
+  g.fillStyle='#e8b54a';rr(g,-7.5,-34,15,17,6);g.fill();
+  g.fillStyle='#8e3fb8';g.beginPath();g.moveTo(-12,0);g.lineTo(-6,-22);g.lineTo(6,-22);g.lineTo(12,0);g.fill();
+  g.fillStyle='#ffffff';g.fillRect(-12,-3,24,3);g.fillStyle='#b468d9';g.fillRect(-5,-22,10,6);
+  g.save();g.translate(-6,-19);g.rotate(-1.9-Math.sin(t*0.15+1)*0.5);g.fillStyle='#8e3fb8';rr(g,0,-2,10,4,2);g.fill();g.fillStyle='#f3c39b';circ(g,11,0,2.2);g.restore();
+  g.fillStyle='#f3c39b';rr(g,-5.5,-33,11,11,4.5);g.fill();
+  g.fillStyle='#e8b54a';rr(g,-6,-34,12,4,2);g.fill();
+  g.fillStyle='#1a1a24';g.fillRect(-2.8,-28.5,1.5,2);g.fillRect(1.4,-28.5,1.5,2);
+  g.fillStyle='#ff8a9c';circ(g,-3.5,-25.5,1.1);circ(g,3.5,-25.5,1.1);
+  g.fillStyle='#ffd75e';g.beginPath();g.moveTo(-5,-34);g.lineTo(-5,-39);g.lineTo(-2.5,-36);g.lineTo(0,-40);g.lineTo(2.5,-36);g.lineTo(5,-39);g.lineTo(5,-34);g.fill();
+  g.fillStyle='#7fe3ff';circ(g,0,-36,1.1);
+  g.restore();
+}
+function drawPrincess(g,x,gy,t,face,walk){
+  g.save();g.translate(x,gy);g.scale(2*face,2);
+  g.fillStyle='#ffd75e';rr(g,-7,-32,13,19,6);g.fill();
+  g.fillStyle='#ff7ab8';g.beginPath();g.moveTo(-10,0);g.lineTo(-5,-19);g.lineTo(5,-19);g.lineTo(10,0);g.fill();
+  g.fillStyle='#ffb3d6';g.beginPath();g.moveTo(-10,0);g.quadraticCurveTo(0,-5,10,0);g.fill();g.fillRect(-4,-19,8,5);
+  if(walk){g.fillStyle='#ff7ab8';rr(g,2,-17,3,8,1.5);g.fill();}
+  else{g.save();g.translate(4,-16);g.rotate(-2.1+Math.sin(t*0.18)*0.45);g.fillStyle='#ff7ab8';rr(g,0,-1.7,8,3.4,1.7);g.fill();g.fillStyle='#f3c39b';circ(g,8.5,0,1.9);g.restore();}
+  g.fillStyle='#f3c39b';rr(g,-5,-29,10,10,4);g.fill();
+  g.fillStyle='#ffd75e';rr(g,-5.5,-30.5,11,4,2);g.fill();
+  g.fillStyle='#1a1a24';g.fillRect(0,-25,1.4,2);g.fillRect(2.8,-25,1.4,2);
+  g.fillStyle='#ff8a9c';circ(g,-1,-22,1);circ(g,4.5,-22,1);
+  g.fillStyle='#e9ecf2';g.beginPath();g.moveTo(-3.5,-30);g.lineTo(-2,-33);g.lineTo(0,-31);g.lineTo(2,-33.5);g.lineTo(3.5,-30);g.fill();
+  g.fillStyle='#ff4f8b';circ(g,0,-31.3,0.9);
+  g.restore();
+}
+function bubble(g,x,y,text,W){
+  g.font='700 15px "Nunito",sans-serif';const lines=[];let line='';
+  for(const w of text.split(' ')){const tst=line?line+' '+w:w;if(g.measureText(tst).width>200&&line){lines.push(line);line=w;}else line=tst;}lines.push(line);
+  const bw=Math.max(...lines.map(l=>g.measureText(l).width))+24,bh=lines.length*19+14;
+  let bx=Math.max(8,Math.min(W-bw-8,x-bw/2));const by=y-bh;
+  g.fillStyle='#ffffff';rr(g,bx,by,bw,bh,10);g.fill();
+  g.beginPath();g.moveTo(Math.max(bx+12,Math.min(bx+bw-12,x))-7,by+bh-1);g.lineTo(x,y+12);g.lineTo(Math.max(bx+12,Math.min(bx+bw-12,x))+7,by+bh-1);g.fill();
+  g.fillStyle='#1a1530';g.textAlign='center';lines.forEach((l,i)=>g.fillText(l,bx+bw/2,by+22+i*19));
+}
+function heartAt(g,x,y,r,col){g.fillStyle=col;g.beginPath();g.moveTo(x,y+r*0.9);g.bezierCurveTo(x-r*1.6,y-r*0.2,x-r*0.8,y-r*1.4,x,y-r*0.5);g.bezierCurveTo(x+r*0.8,y-r*1.4,x+r*1.6,y-r*0.2,x,y+r*0.9);g.fill();}
+function drawPrincessScene(g,W,H,t,c,fw,weapon){
+  const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#7fb6ff');gr.addColorStop(1,'#ffd6e8');g.fillStyle=gr;g.fillRect(0,0,W,H);
+  const gy=H-60,cx=W/2;
+  g.fillStyle='#ffffff';g.globalAlpha=.7;for(const [x,y,k] of [[W*0.15,70,1],[W*0.5,50,1.3],[W*0.8,90,0.9]]){circ(g,x,y,16*k);circ(g,x+18*k,y-8*k,20*k);circ(g,x+38*k,y,16*k);}g.globalAlpha=1;
+  g.fillStyle='#c7d7f2';g.beginPath();g.moveTo(0,gy);g.lineTo(W*0.2,gy-110);g.lineTo(W*0.4,gy);g.fill();g.beginPath();g.moveTo(W*0.3,gy);g.lineTo(W*0.55,gy-150);g.lineTo(W*0.8,gy);g.fill();
+  g.fillStyle='#ffffff';g.beginPath();g.moveTo(W*0.505,gy-120);g.lineTo(W*0.55,gy-150);g.lineTo(W*0.595,gy-120);g.fill();
+  // kula
+  const tx=cx+60,tw=110;
+  g.fillStyle='#8f8aa3';g.fillRect(tx,gy-230,tw,230);for(let k=0;k<tw;k+=22)g.fillRect(tx+k,gy-244,13,14);
+  g.fillStyle='rgba(0,0,0,.1)';for(let r=gy-210;r<gy;r+=20)g.fillRect(tx,r,tw,2);
+  g.fillStyle='#ff7ab8';g.beginPath();g.moveTo(tx-8,gy-244);g.lineTo(tx+tw/2,gy-310);g.lineTo(tx+tw+8,gy-244);g.fill();
+  g.fillStyle='#ffd75e';rr(g,tx+tw/2-10,gy-200,20,28,10);g.fill();
+  const dx=tx+20,dw=48,dh=70,open=Math.max(0,Math.min(1,(t-80)/40));
+  g.fillStyle='#2a1a14';rr(g,dx,gy-dh,dw,dh,22);g.fill();
+  if(open>0){g.save();rr(g,dx,gy-dh,dw,dh,22);g.clip();g.fillStyle='#ffe3a0';g.globalAlpha=open;g.fillRect(dx,gy-dh,dw,dh);g.globalAlpha=1;
+    g.translate(-open*dw*0.9,0);g.fillStyle='#6b4423';g.fillRect(dx,gy-dh,dw,dh);g.fillStyle='#4a2e18';for(let k=dx+5;k<dx+dw;k+=11)g.fillRect(k,gy-dh,3,dh);g.restore();}
+  else{g.fillStyle='#6b4423';rr(g,dx,gy-dh,dw,dh,22);g.fill();g.fillStyle='#4a2e18';for(let k=dx+5;k<dx+dw;k+=11)g.fillRect(k,gy-dh+4,3,dh-4);}
+  g.fillStyle='#6fbf5a';g.fillRect(0,gy,W,H-gy);g.fillStyle='#8fd96f';g.fillRect(0,gy,W,5);
+  // vitez
+  let kx,walk=false;if(t<70){kx=-30+(t/70)*(cx-50);walk=true;}else kx=cx-80;
+  const bob=t>200?Math.abs(Math.sin(t*0.12))*12:0;
+  g.save();g.translate(kx,gy-60-bob);g.scale(2,2);drawHero(g,c,-11,0,1,walk?t*0.35:0,bob>2,false,weapon);g.restore();
+  // princeza
+  if(t>110){let px,pw=false;if(t<180){px=dx+dw/2-((t-110)/70)*(dx+dw/2-(cx+5));pw=true;}else px=cx+5;
+    drawPrincess(g,px,gy,t,-1,pw);}
+  for(const p of fw){g.globalAlpha=Math.max(0,Math.min(1,p.life/40));heartAt(g,p.x,p.y,6,p.col);}g.globalAlpha=1;
+  if(t>190&&t<400)bubble(g,cx+5,gy-92,cyr(tr('Hvala, '+gw(c,'hrabri viteže','hrabra vitežice')+'! Čekaću te u Kraljevoj tvrđavi.','Thank you, brave knight! I will wait for you at the King\'s Castle.')),W);
+  if(t>130){g.globalAlpha=Math.min(1,(t-130)/30);const fs=Math.min(38,W/10);g.textAlign='center';g.font='800 '+fs+'px "Rubik",sans-serif';g.lineWidth=6;g.strokeStyle='#3a1640';
+    const bt=cyr(tr('Princeza je spasena!','The princess is saved!'));g.strokeText(bt,cx,104);g.fillStyle='#ffd1e6';g.fillText(bt,cx,104);g.globalAlpha=1;}
+}
 function drawEnding(g,W,H,t,c,fw,weapon){
+  if(endKind==='princess')return drawPrincessScene(g,W,H,t,c,fw,weapon);
   const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#1b1240');gr.addColorStop(1,'#8a3a5c');g.fillStyle=gr;g.fillRect(0,0,W,H);
   g.fillStyle='#ffffff';for(let i=0;i<40;i++){g.globalAlpha=.3+.7*Math.abs(Math.sin(t*0.03+i));g.fillRect((i*97)%W,(i*53)%170,2,2);}g.globalAlpha=1;
   const gy=H-60,cx=W/2,cw=Math.min(W-30,460),x0=cx-cw/2;
@@ -1395,27 +1496,47 @@ function drawEnding(g,W,H,t,c,fw,weapon){
     const wv=Math.sin(t*0.12+side)*4;
     g.fillStyle=c.jacket;g.beginPath();g.moveTo(tx+36,gy-300);g.quadraticCurveTo(tx+52,gy-296+wv,tx+66,gy-292);g.quadraticCurveTo(tx+52,gy-286+wv,tx+36,gy-282);g.fill();
   }
-  const gw=96,gh=130,gx=cx-gw/2,open=Math.max(0,Math.min(1,(t-60)/90));
+  const gw=96,gh=130,gx=cx-gw/2,open=Math.max(0,Math.min(1,(t-300)/70));
   const arch=()=>{g.beginPath();g.moveTo(gx,gy);g.lineTo(gx,gy-gh+gw/2);g.arc(cx,gy-gh+gw/2,gw/2,Math.PI,0);g.lineTo(gx+gw,gy);g.closePath();};
   arch();g.fillStyle='#2a1a14';g.fill();
   if(open>0){g.save();arch();g.clip();g.globalAlpha=open;g.fillStyle='#ffe3a0';g.fillRect(gx,gy-gh,gw,gh);g.fillStyle='#ffd06a';g.fillRect(gx,gy-24,gw,24);g.globalAlpha=1;
-    if(open>0.4)drawKing(g,cx+22,gy,t);g.restore();}
+    if(open>0.4){drawQueen(g,cx-22,gy,t);drawKing(g,cx+22,gy,t);}g.restore();}
   g.save();arch();g.clip();g.translate(0,-open*gh);g.fillStyle='#3a2a22';
   for(let k=gx+6;k<gx+gw;k+=13)g.fillRect(k,gy-gh,4,gh);for(let r=gy-gh+10;r<gy;r+=18)g.fillRect(gx,r,gw,4);
   g.restore();
   arch();g.strokeStyle='#9d9199';g.lineWidth=8;g.stroke();
   g.fillStyle='#4a3f47';g.fillRect(0,gy,W,H-gy);g.fillStyle='#857880';g.fillRect(0,gy,W,4);
   g.fillStyle='#a8323a';g.fillRect(cx-gw/2+6,gy+4,gw-12,H-gy);
-  let kx,walk=false;
-  if(t<60){kx=-30+(t/60)*(cx-60);walk=true;}else if(t<150)kx=cx-90;else if(t<220){kx=cx-90+((t-150)/70)*58;walk=true;}else kx=cx-32;
-  const bob=t>240?Math.abs(Math.sin(t*0.12))*16:0;
-  g.save();g.translate(kx,gy-60-bob);g.scale(2,2);drawHero(g,c,-11,0,1,walk?t*0.35:0,bob>2,false,weapon);g.restore();
+  // vitez dolazi i kleči, princ ga mačem proglašava vitezom, pa zajedno ulaze u tvrđavu
+  const KX=cx-120,PX=cx-62;
+  let kx,walk=false,kneel=false,fade=1;
+  if(t<70){kx=-30+(t/70)*(KX+30);walk=true;}else if(t<420)kx=KX;else if(t<530){kx=KX+((t-420)/110)*(cx-8-KX);walk=true;}else kx=cx-8;
+  if(t>=95&&t<235)kneel=true;
+  let px,pwalk=false;if(t<20)px=W+40;else if(t<95){px=W+40-((t-20)/75)*(W+40-PX);pwalk=true;}else if(t<420)px=PX;else if(t<530){px=PX+((t-420)/110)*(cx+12-PX);pwalk=true;}else px=cx+12;
+  if(t>490)fade=Math.max(0,1-(t-490)/45);
+  const shrink=t>470?Math.max(0.7,1-(t-470)/200):1;
+  // mač: gore, spušta se na levo rame, diže, pa na desno rame, pa gore
+  let sw=-1.35;
+  if(t>=125&&t<235){const u=t-125;const touch=(a,b)=>u>=a&&u<b?Math.sin((u-a)/(b-a)*Math.PI):0;sw=-1.35+1.7*Math.max(touch(5,45),touch(55,95));}
+  if(t>=420)sw=0.9;
+  const bob=t>240&&t<420?Math.abs(Math.sin(t*0.12))*14:0;
+  if(t>320){const pa=Math.min(1,(t-320)/40);g.globalAlpha=pa;drawPrincess(g,cx+92,gy,t,-1,false);g.globalAlpha=1;}
+  g.globalAlpha=fade;
+  g.save();
+  if(kneel){g.translate(kx,gy-46);g.scale(2,1.55);drawHero(g,c,-11,0,1,0,false,false,weapon);}
+  else{g.translate(kx,gy-6);g.scale(shrink,shrink);g.translate(0,-54-bob);g.scale(2,2);drawHero(g,c,-11,0,1,walk?t*0.35:0,bob>2,false,weapon);}
+  g.restore();
+  g.save();g.translate(px,gy-6);g.scale(shrink,shrink);g.translate(-px,-gy+6);drawPrince(g,px,gy,t,t>=420?1:-1,sw,pwalk);g.restore();
+  g.globalAlpha=1;
+  if(t>=232&&t<262){const k=(t-232)/30;g.globalAlpha=1-k;g.fillStyle='#ffe27a';for(let i=0;i<14;i++){const a=i/14*Math.PI*2;circ(g,KX+Math.cos(a)*(16+k*40),gy-40+Math.sin(a)*(16+k*40),3);}g.globalAlpha=1;}
+  if(t>=110&&t<250)bubble(g,PX,gy-92,cyr(tr('Proglašavam te '+(c.f?'vitežicom':'vitezom')+' kraljevstva!','I dub thee a knight of the kingdom!')),W);
+  if(t>=370&&t<440)bubble(g,cx,gy-150,cyr(tr('Dobro došli u tvrđavu!','Welcome to the castle!')),W);
   for(const p of fw){g.globalAlpha=Math.max(0,p.life/p.max);g.fillStyle=p.col;g.fillRect(p.x-1.5,p.y-1.5,3,3);}g.globalAlpha=1;
-  if(t>260){
-    g.globalAlpha=Math.min(1,(t-260)/30);const fs=Math.min(42,W/9);
+  if(t>540){
+    g.globalAlpha=Math.min(1,(t-540)/30);const fs=Math.min(42,W/9);
     g.textAlign='center';g.font='800 '+fs+'px "Rubik",sans-serif';g.lineWidth=6;g.strokeStyle='#130c2a';
     const bt=cyr(tr('Bravo, '+c.voc+'!','Well done, '+c.name+'!'));g.strokeText(bt,cx,64);g.fillStyle=c.hat;g.fillText(bt,cx,64);
-    g.font='16px "Nunito",sans-serif';g.lineWidth=4;const st=cyr(tr((c.f?'Stigla':'Stigao')+' si do Kraljeve tvrđave!',"You reached the King's Castle!"));g.strokeText(st,cx,92);g.fillStyle='#ffffff';g.fillText(st,cx,92);
+    g.font='16px "Nunito",sans-serif';g.lineWidth=4;const st=cyr(tr(c.f?'Sada si prava vitežica!':'Sada si pravi vitez!','Now you are a true knight!'));g.strokeText(st,cx,92);g.fillStyle='#ffffff';g.fillText(st,cx,92);
     g.globalAlpha=1;
   }
 }
@@ -1853,6 +1974,10 @@ function render(){
         ctx.save();ctx.translate(cxs,cys);if(h.face<0)ctx.scale(-1,1);ctx.strokeStyle='rgba(255,255,255,'+(0.85-k*0.5)+')';ctx.lineWidth=4;ctx.lineCap='round';
         ctx.beginPath();ctx.arc(0,0,R,-1.4,-1.4+Math.min(1,k*1.4)*2.4);ctx.stroke();ctx.strokeStyle='rgba(180,220,255,.5)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,R-5,-1.2,-1.2+Math.min(1,k*1.4)*2.1);ctx.stroke();ctx.restore();}
       ctx.globalAlpha=1;
+      if(P().shield&&!h.hidden){// štit (lako): providan plavi mehur oko viteza
+        const r=(P().horse?30:24)+Math.sin(tick*0.12)*1.5,bx=h.x+h.w/2,by=h.y+h.h/2-2;
+        ctx.save();ctx.globalAlpha=0.22;ctx.fillStyle='#9fd8ff';circ(ctx,bx,by,r);ctx.globalAlpha=0.75;ctx.strokeStyle='#bfe6ff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(bx,by,r,0,Math.PI*2);ctx.stroke();
+        ctx.globalAlpha=0.9;ctx.strokeStyle='#ffffff';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(bx,by,r-4,-2.4,-1.7);ctx.stroke();ctx.restore();}
     }
   }
   for(const p of particles){
