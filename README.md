@@ -90,7 +90,7 @@ Kad izgubi život, vitez gubi sve poklone.
 
 ### Jezik
 
-Igra je na srpskom (ćirilica). U glavnom meniju dugme **English** prebacuje igru na engleski, a dugme **Српски** vraća na srpski. Izbor se pamti.
+Igra je na srpskom (ćirilica). Na početnom ekranu dugme **🌐 English** gore levo prebacuje igru na engleski, a **🌐 Српски** vraća na srpski. Izbor se pamti.
 
 ### Nivoi
 
