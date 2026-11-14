@@ -52,7 +52,7 @@ Na pauzi je i link **Изађи**, koji prekida igru i vraća na glavni meni. Na
 
 ### Tajna soba
 
-U nivoima 2, 4, 6, 8 i 10 stoji napukao zid kroz čije pukotine sija zlatna svetlost. Kad ga vitez udari mačem ili praćkom, zid se sruši, a iza njega je tajna soba sa sandukom i dragim kamenjem (+200 poena).
+U nivoima 2, 4, 6, 8 i 10 stoji napukao zid kroz čije pukotine sija zlatna svetlost. Kad ga vitez udari mačem ili praćkom, zid se sruši, a iza njega je tajna soba sa sandukom i dragim kamenjem (+200 poena i +25 ◆ u kasicu).
 
 ### Igra preko Blututa
 
@@ -85,8 +85,13 @@ Kad izgubi život, vitez gubi sve poklone.
 ### Kostimi i dnevni poklon
 
 - Svaki skupljeni dragi kamen ide u **kasicu**, koja se čuva na uređaju.
-- U glavnom meniju, pod **Kostimi**, kamenjem se kupuju gusarski šešir (150), štit sa lavom (250), kruna (400) i zlatni plašt (600). Kupljen kostim mogu da nose svi vitezovi, svaki po svom izboru.
+- Na kraju svakog nivoa kasica dobija nagradu: 5 ◆ za 1. nivo, 10 za 2. i tako dalje do 50 za 10. nivo, plus 20 ◆ za 3 zvezdice.
+- U glavnom meniju, pod **Kostimi**, kamenjem se kupuju gusarski šešir (800), štit sa lavom (1500), kruna (2500) i zlatni plašt (4000). Kupljen kostim mogu da nose svi vitezovi, svaki po svom izboru.
 - **Dnevni poklon:** prvi put svakog dana igra daje kamenje za kasicu (50, pa sve više ako se dolazi više dana zaredom, do 110).
+
+### Čuvanje igre
+
+Igra se sama čuva na početku svakog nivoa, posle izgubljenog života i na kontrolnoj tački. Ako se aplikacija zatvori, na početnom ekranu stoji **Настави игру · ниво X** (i ispod **Нова игра**). Posle kraja igre sačuvana igra se briše. Igra preko Blututa se ne čuva.
 
 ### Jezik
 
@@ -105,7 +110,9 @@ Igra je na srpskom (ćirilica). Na početnom ekranu dugme **🌐 English** gore 
 9. Олуја у облацима
 10. Краљева тврђава
 
-Neprijatelji su goblini, ježevi (na njih ne sme da se skoči) i mali zmajevi. Svi mogu da se obore mačem. Prepreke su provalije, lava, šiljci, kružne testere, opruge i pokretne platforme.
+Neprijatelji su goblini, ježevi (na njih ne sme da se skoči), mali zmajevi i, u pećinama, šišmiši koji se obrušavaju. Svi mogu da se obore mačem. Prepreke su provalije, lava, šiljci, kružne testere, opruge i pokretne platforme, a u nivou „Олуја у облацима“ povremeno duva vetar koji gura viteza unazad. Svaki nivo ima drugačiju kombinaciju poklona (magnet, nevidljivost, dupli skok), a nivoi 3, 6 i 9 imaju po tri.
+
+Kontrolna tačka je otprilike na pola nivoa (na najbližem sigurnom tlu). Kad se telefon drži uspravno, pogled je malo udaljen da se vidi više nivoa, a igra predloži okretanje telefona. Na tabletima se slika crta u nešto manjoj rezoluciji da igra ide glatko.
 
 ## Instalacija na Android
 

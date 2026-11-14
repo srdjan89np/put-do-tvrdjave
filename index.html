@@ -57,8 +57,8 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
 .opt{position:relative}
 .opt.sel{border-color:var(--c);background:var(--panel-2)}
 .opt .badge{position:absolute;top:6px;right:8px;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#2a1d00;font:800 13px/22px var(--display);text-align:center}
-.mid{display:flex;flex-direction:column;gap:6px;justify-content:center}
-.mid button{width:36px;height:30px;border-radius:9px;border:0;background:var(--panel-2);color:var(--ink);font:900 14px var(--body);cursor:pointer}
+.mid{display:flex;flex-direction:column;gap:6px;justify-content:center;align-items:center}
+.mid button{width:46px;height:42px;border-radius:12px;border:0;background:var(--panel-2);color:var(--ink);font:900 18px var(--body);cursor:pointer}
 .mid button:focus-visible,.pad button:focus-visible,.card button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 #btnSound.off{color:var(--muted);text-decoration:line-through}
 #btnLang{position:fixed;left:max(10px,env(safe-area-inset-left));top:10px;z-index:30;height:34px;padding:0 14px;border-radius:10px;border:2px solid rgba(255,255,255,.18);background:var(--panel-2);color:var(--ink);font:800 15px var(--body);cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.25)}
@@ -132,7 +132,7 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
 .pad .shoot.sword{background:#4a5a7a;color:#eef3ff;box-shadow:0 4px 0 #2a3450;font-size:15px}
 .pad .shoot.sword.on{background:#5d6f94;box-shadow:0 1px 0 #2a3450}
 .pl .wp{color:#ffb36b}
-@media (max-width:400px){.pad button{width:58px}.pad .jump{width:82px;font-size:20px;padding:0}.pad .shoot{width:88px;font-size:14px}.pad .shoot.sword{font-size:13px}}
+@media (max-width:400px){.pl b{font-size:16px;letter-spacing:0}.pl .hearts{letter-spacing:-1px;font-size:11px}.pl .top{gap:3px}.pad button{width:58px}.pad .jump{width:82px;font-size:20px;padding:0}.pad .shoot{width:88px;font-size:14px}.pad .shoot.sword{font-size:13px}}
 @media (hover:hover) and (pointer:fine){.pad{display:none}}
 @media (max-height:520px) and (orientation:landscape){
   #app{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:minmax(0,1fr);gap:0 10px;padding-block:6px;padding-inline:max(10px,env(safe-area-inset-left,0px)) max(10px,env(safe-area-inset-right,0px));max-width:none}
@@ -140,7 +140,8 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
   .hud{grid-row:1;grid-column:2;align-self:start;margin:4px 6px 0;z-index:3;pointer-events:none;grid-template-columns:minmax(0,1fr) auto;min-height:0}
   .pls{grid-template-columns:repeat(var(--n,2),minmax(0,150px))}
   .hud .mid{flex-direction:row;align-items:flex-start;justify-content:center}
-  .hud .mid button{pointer-events:auto;opacity:.85}
+  .hud .mid{gap:8px}
+  .hud .mid button{pointer-events:auto;opacity:.85;width:48px;height:46px}
   .pl{padding:2px 8px;background:rgba(21,27,56,.85)}
   .opts .opt{padding-right:38px}
   .opts .opt .badge{top:50%;margin-top:-11px;right:8px}
@@ -293,11 +294,11 @@ const LEVELS=[
 {name:'Kristalna pećina',en:'Crystal Cave',wp:[42,7],theme:'pecina',w:175,cp:82,goal:168,make(a){
   a.fill(0,174,0,0,STONE);
   a.ground(0,20);a.lava(21,25);a.row(22,9,'SS');a.row(22,8,'oo');
-  a.ground(26,45);a.row(31,11,'^^^');a.row(30,8,'ooooo');a.en('jez',38);a.row(41,8,'KBK');
+  a.ground(26,45);a.row(31,11,'^^^');a.row(30,8,'ooooo');a.en('jez',38);a.row(41,8,'KBK');a.en('mis',36,5);
   a.lava(46,55);a.mover(46,10,3,5,0,3.2);
   a.ground(56,80);a.en('buba',60);a.en('buba',66);a.en('ptica',70,7);a.row(74,11,'^^');a.row(63,8,'oooo');
   a.ground(81,84);a.lava(85,95);a.row(88,10,'S');a.row(92,9,'S');a.row(88,9,'o');a.row(92,8,'o');
-  a.ground(96,130);a.fill(100,108,8,8,BRICK);a.row(101,11,'ooooooo');a.en('jez',112);a.en('jez',120);a.row(115,8,'KKK');a.row(125,11,'J');a.row(124,3,'ooo');
+  a.ground(96,130);a.fill(100,108,8,8,BRICK);a.row(101,11,'ooooooo');a.en('jez',112);a.en('jez',120);a.row(115,8,'KKK');a.en('mis',117,5);a.row(125,11,'J');a.row(124,3,'ooo');
   a.lava(131,140);a.mover(131,10,3,6,0,3.4);
   a.ground(141,174);a.en('buba',147);a.en('buba',151);a.stairs(155,4,1);a.stairs(159,4,-1);
 }},
@@ -377,13 +378,13 @@ const LEVELS=[
 {name:'Duboka pećina',en:'Deep Cave',wp:[31,7],theme:'pecina',w:185,cp:95,goal:178,make(a){
   a.fill(0,184,0,0,STONE);
   a.ground(0,15);a.lava(16,22);a.row(18,9,'S');a.row(18,8,'o');
-  a.ground(23,40);a.en('jez',28);a.en('jez',35);a.row(30,8,'KBK');a.row(38,11,'^^');
+  a.ground(23,40);a.en('jez',28);a.en('jez',35);a.en('mis',32,5);a.row(30,8,'KBK');a.row(38,11,'^^');
   a.lava(41,52);a.mover(41,10,3,4,0,2.8);a.mover(48,8,3,2,0,2.8,0.5);
   a.ground(53,75);a.fill(57,66,9,9,BRICK);a.row(58,11,'oooooooo');a.en('buba',60);a.en('buba',64);a.en('ptica',70,6);
   a.lava(76,80);a.row(77,9,'ooo');
   a.ground(81,100);a.saw(87,8,0,3,2);a.saw(93,8,0,3,2,0.5);a.en('jez',97);
   a.lava(101,116);a.row(103,10,'S');a.row(106,8,'S');a.row(109,10,'S');a.row(112,8,'S');a.en('ptica',107,4);
-  a.ground(117,145);a.en('buba',121);a.en('jez',127);a.en('buba',131);a.row(124,11,'^^');a.row(135,11,'J');a.row(134,3,'ooo');a.row(140,8,'KKK');
+  a.ground(117,145);a.en('buba',121);a.en('jez',127);a.en('buba',131);a.en('mis',129,5);a.row(124,11,'^^');a.row(135,11,'J');a.row(134,3,'ooo');a.row(140,8,'KKK');
   a.lava(146,156);a.mover(146,10,3,0,-4,2.4);a.mover(151,6,3,0,4,2.4);
   a.ground(157,184);a.en('jez',162);a.stairs(166,5,1);
 }},
@@ -440,9 +441,10 @@ function extraSection(a,x,theme,lv){
 }
 const POWS=['magnet','nevid','dupli'],POWCOL={magnet:'#ff6b6b',nevid:'#9fd3ff',dupli:'#ffe27a'};
 function mkEnemy(type,tx,ty){
-  const d={buba:[24,20,-0.9],jez:[26,20,-0.6],ptica:[26,18,0]}[type];
+  const d={buba:[24,20,-0.9],jez:[26,20,-0.6],ptica:[26,18,0],mis:[26,16,0]}[type];
   const e={type,w:d[0],h:d[1],vx:d[2],vy:0,x:tx*T+(T-d[0])/2,y:(ty+1)*T-d[1],active:false,dead:false,deadT:0,t:0,face:-1,ground:false};
   if(type==='ptica'){e.bx=e.x;e.by=ty*T+6;e.amp=T*2.5;e.y=e.by;}
+  if(type==='mis'){e.bx=e.x;e.by=ty*T+4;e.amp=T*2;e.dip=T*3;e.y=e.by;}
   return e;
 }
 function build(def){
@@ -472,6 +474,10 @@ function build(def){
     for(const m of L.movers.concat(L.saws))if(m.bx>=X){m.bx+=D;m.x+=D;}
     extraSection(a,at,def.theme,LEVELS.indexOf(def));
   }
+  // u pećinama umesto ptica lete šišmiši
+  if(def.theme==='pecina')L.enemies=L.enemies.map(e=>e.type==='ptica'?mkEnemy('mis',Math.round((e.bx-(T-26)/2)/T),Math.round((e.by-6)/T)-1):e);
+  // oluja: povremeni nalet vetra gura viteza unazad
+  L.wind=def.name==='Oluja u oblacima';
   // arena za velikog zmaja ispred tvrđave
   if(def.boss){
     const x1=L.goal-14,x2=L.goal-1,mat=def.theme==='tvrdjava'?STONE:TOP;
@@ -481,25 +487,41 @@ function build(def){
     L.saws=L.saws.filter(s=>!inA(s.bx));L.movers=L.movers.filter(m=>!(m.bx+m.w>X1-T&&m.bx<X2));
     L.boss={x:X2-T*5,y:12*T-64,w:76,h:64,vx:0,vy:0,hp:3,max:3,face:-1,t:0,hitT:0,fireT:0,dead:false,deadT:0,active:false,lv:def.boss,x1:X1,x2:X2-T,wall:X2-2};
   }
-  // novi pokloni: magnet, nevidljivost i dupli skok umesto po jednog kamena
-  {const li=LEVELS.indexOf(def),cs=L.coins.slice().sort((a,b)=>a.x-b.x);
-   [0.3,0.68].forEach((f,k)=>{const c=cs[Math.floor(cs.length*f)];if(!c)return;L.coins.splice(L.coins.indexOf(c),1);L.pows.push({x:c.x,y:c.y,kind:POWS[(Math.max(0,li)+k)%3],got:false});});}
-  {const li=LEVELS.indexOf(def);if(li%2===1)placeSecret(L);}
+  // novi pokloni: magnet, nevidljivost i dupli skok — drugačija kombinacija u svakom nivou
+  {const li=Math.max(0,LEVELS.indexOf(def)),cs=L.coins.slice().sort((a,b)=>a.x-b.x);
+   const ord=[[0,1,2],[2,0,1],[1,2,0],[0,2,1],[2,1,0],[1,0,2]][li%6],fr=li%3===2?[0.22,0.5,0.78]:li%3===1?[0.35,0.7]:[0.3,0.62];
+   fr.forEach((f,k)=>{const c=cs[Math.floor(cs.length*f)];if(!c)return;L.coins.splice(L.coins.indexOf(c),1);L.pows.push({x:c.x,y:c.y,kind:POWS[ord[k]],got:false});});}
+  // kontrolna tačka na pola puta, na sigurnom tlu; tajna soba se postavlja dalje od nje
+  L.cp=findCp(L,Math.round(L.goal*0.5))||def.cp;
+  {const li=LEVELS.indexOf(def);if(li%2===1){placeSecret(L);if(L.secret==null){L.cp=null;placeSecret(L);L.cp=findCp(L,Math.round(L.goal*0.5))||def.cp;}}}
   L.totalGems=L.coins.length;for(const r of L.g)for(const t of r)if(t===CRATE)L.totalGems++;
   moveThings(L);L.movers.forEach(m=>{m.dx=0;m.dy=0;});
   return L;
+}
+function findCp(L,want){
+  const G=[TOP,STONE,DIRT,CLOUD],g=L.g,hi=L.goal-(L.boss?18:6);
+  const top=x=>{for(let y=1;y<ROWS;y++)if(SOLID[g[y][x]]&&!SOLID[g[y-1][x]])return y;return -1;};
+  const ok=x=>{if(x<8||x>hi)return false;if(L.secret!=null&&x>=L.secret-5&&x<=L.secret+8)return false;
+    const y0=top(x);if(y0<6)return false;
+    for(let xx=x-1;xx<=x+2;xx++){if(top(xx)!==y0||!G.includes(g[y0][xx]))return false;for(let y=y0-4;y<y0;y++)if(g[y][xx]!==AIR)return false;}
+    for(let xx=x-3;xx<=x+4;xx++)for(let y=y0-1;y<=Math.min(ROWS-1,y0+1);y++)if(g[y][xx]===LAVA||g[y][xx]===SPIKE)return false;
+    if(L.saws.some(m=>Math.abs(m.bx+m.ax/2-x*T)<T*4))return false;
+    if(L.movers.some(m=>Math.max(m.by,m.by+m.ay)>(y0-5)*T&&Math.min(m.by,m.by+m.ay)<y0*T&&Math.min(m.bx,m.bx+m.ax)<(x+3)*T&&Math.max(m.bx,m.bx+m.ax)+m.w>(x-1)*T))return false;
+    return true;};
+  for(let d=0;d<60;d++){if(ok(want-d))return want-d;if(ok(want+d))return want+d;}
+  return null;
 }
 // tajna soba: napukao zid (razbija se mačem ili praćkom), iza njega sanduk i drago kamenje
 function placeSecret(L){
   const W=6,GROUND=[TOP,STONE,DIRT,CLOUD],g=L.g;
   const hi=L.goal-(L.boss?20:8)-W,lo=10;
   const busy=(x1,x2)=>{const X1=x1*T,X2=(x2+1)*T,inR=x=>x>=X1&&x<X2;
-    return L.items.some(c=>inR(c.x))||L.pows.some(c=>inR(c.x))||L.enemies.some(e=>e.type==='ptica'&&inR(e.bx))||
+    return L.items.some(c=>inR(c.x))||L.pows.some(c=>inR(c.x))||L.enemies.some(e=>(e.type==='ptica'||e.type==='mis')&&inR(e.bx))||
       L.movers.some(m=>Math.max(m.by,m.by+m.ay)>5*T&&Math.min(m.bx,m.bx+m.ax)<X2&&Math.max(m.bx,m.bx+m.ax)+m.w>X1)||L.saws.some(m=>Math.max(m.by,m.by+m.ay)>5*T&&Math.min(m.bx,m.bx+m.ax)-20<X2&&Math.max(m.bx,m.bx+m.ax)+20>X1);};
-  const ok=c=>{if(L.cp>=c-3&&L.cp<=c+W+1)return false;
+  const ok=c=>{if(L.cp!=null&&L.cp>=c-6&&L.cp<=c+W+4)return false;
     for(let x=c-3;x<c+W;x++){if(!GROUND.includes(g[12][x]))return false;const y0=x>=c&&x<c+W?6:9;for(let y=y0;y<12;y++)if(g[y][x]!==AIR)return false;}
     return !busy(c-1,c+W);};
-  const start=Math.floor(L.w*0.45);let c=-1;
+  const start=Math.floor(L.w*0.62);let c=-1;
   for(let x=start;x<=hi&&c<0;x++)if(ok(x))c=x;
   for(let x=start-1;x>=lo&&c<0;x--)if(ok(x))c=x;
   if(c<0)return;
@@ -515,7 +537,7 @@ function breakWall(cx,cy){
   for(let y=y0;y<=y1;y++){lvl.g[y][cx]=AIR;
     for(let i=0;i<12;i++)particles.push({type:'dot',x:cx*T+Math.random()*T,y:y*T+Math.random()*T,vx:(Math.random()-.5)*6,vy:-Math.random()*4.5,life:36,max:36,col:i%3===0?th.stoneLo:i%3===1?th.stone:th.stoneHi,r:2.5+Math.random()*3.5});}
   for(let i=0;i<18;i++){const an=i/18*Math.PI*2;particles.push({type:'dot',x:cx*T+T,y:(y0+y1+1)/2*T,vx:Math.cos(an)*3,vy:Math.sin(an)*3,life:30,max:30,col:i%2?'#ffd75e':'#fff3b8',r:2.5});}
-  addScore(200);sfx('super');popText(cx*T+T*1.5,y0*T-14,tr('Tajna soba!','Secret room!'),'#ffe27a');
+  addScore(200);addBank(25);sfx('super');popText(cx*T+T*1.5,y0*T-14,tr('Tajna soba! +25 ◆','Secret room! +25 ◆'),'#ffe27a');
 }
 function moveThings(L){
   for(const m of L.movers.concat(L.saws)){
@@ -526,6 +548,7 @@ function moveThings(L){
 }
 
 /* ---------- State ---------- */
+let portrait=false,finePtr=matchMedia('(hover:hover) and (pointer:fine)').matches;
 let lvl=build(LEVELS[0]),hero=null,players=null,cur=0,state='title',cam=0,VW=640,scale=1,dpr=1,tick=0,particles=[],flagY=0,dieT=0,easy=false,hard=false,knight=false;
 const K={l:false,r:false,j:false,jp:false,s:false,sp:false,a:false,ap:false};
 
@@ -604,7 +627,7 @@ function bump(cx,cy){
   else sfx('bump');
   if(t===CRATE||t===BRICK||t===USED){
     lvl.bumps.push({cx,cy,t:10});
-    for(const e of lvl.enemies){if(e.dead||e.type==='ptica')continue;
+    for(const e of lvl.enemies){if(e.dead||e.type==='ptica'||e.type==='mis')continue;
       if(Math.abs(e.y+e.h-cy*T)<5&&e.x+e.w>cx*T&&e.x<cx*T+T){killEnemy(e,false);}}
   }
 }
@@ -653,6 +676,7 @@ function updateHero(){
   h.x+=h.vx;if(h.x<0){h.x=0;h.vx=0;}
   if(collideX(h))h.vx=0;
   if(lvl.boss&&!lvl.boss.dead&&h.x+h.w>lvl.boss.wall){h.x=lvl.boss.wall-h.w;h.vx=Math.min(0,h.vx);}
+  {const wg=windGust();if(wg>0){const o={x:h.x-wg*(easy?0.7:1.5),y:h.y,w:h.w,h:h.h,vx:-1};if(o.x<0)o.x=0;collideX(o);h.x=o.x;}}
   const prevBottom=h.y+h.h;
   h.y+=h.vy;h.ground=false;h.ride=null;
   collideY(h,true);
@@ -697,9 +721,12 @@ function updateHero(){
     if(pl.weapon===2&&h.cool<=0&&lvl.shots.length<9){h.cool=16;for(const vy0 of [-4.5,-1.5,1.2])lvl.shots.push({x:h.x+h.w/2+h.face*12,y:h.y+12,vx:h.face*8+h.vx*0.4,vy:vy0,life:120,sup:true});sfx('super');}
     else if(pl.weapon&&h.cool<=0&&lvl.shots.length<3){h.cool=14;lvl.shots.push({x:h.x+h.w/2+h.face*12,y:h.y+12,vx:h.face*7.5+h.vx*0.4,vy:-1.5,life:110});sfx('shoot');}}
   for(const c of lvl.coins){if(!c.got&&Math.abs(c.x-(h.x+h.w/2))<17&&Math.abs(c.y-(h.y+h.h/2))<21){c.got=true;addCoin(c.k);sfx('coin');puff(c.x,c.y,5,'#ffe27a');}}
-  if(lvl.cp&&!pl.cp&&h.x>lvl.cp*T){pl.cp=lvl.cp;sfx('flag');popText(lvl.cp*T+16,9*T,tr('Kontrolna tačka!','Checkpoint!'),'#bff5c8');}
+  if(lvl.cp&&!pl.cp&&h.x>lvl.cp*T){pl.cp=lvl.cp;sfx('flag');saveGame();popText(lvl.cp*T+16,9*T,tr('Kontrolna tačka!','Checkpoint!'),'#bff5c8');}
   if(h.x+h.w>=lvl.goal*T+T/2-3)startWin();
 }
+// vetar: na svakih 7 sekundi nalet od 2 sekunde (upozorenje sekundu ranije)
+function windGust(){if(!lvl.wind)return 0;const ph=lvl.t%420;if(ph<300)return 0;const k=(ph-300)/120;return Math.sin(k*Math.PI);}
+function windWarn(){return lvl.wind&&lvl.t%420>=240&&lvl.t%420<300;}
 function touchHazard(h){
   if(easy)return false;
   const x0=Math.floor(h.x/T),x1=Math.floor((h.x+h.w-0.01)/T),y0=Math.floor(h.y/T),y1=Math.floor((h.y+h.h-0.01)/T);
@@ -740,6 +767,8 @@ function updateEnemies(){
     e.t+=e.spd||1;
     if(e.type==='ptica'){
       const px=e.x;e.x=e.bx+Math.sin(e.t*0.02)*e.amp;e.y=e.by+Math.sin(e.t*0.07)*10;e.face=e.x>px?1:-1;
+    }else if(e.type==='mis'){// šišmiš: leti levo-desno i obrušava se
+      const px=e.x;e.x=e.bx+Math.sin(e.t*0.022)*e.amp;e.y=e.by+Math.abs(Math.sin(e.t*0.045))*e.dip;e.face=e.x>px?1:-1;
     }else{
       e.vy=Math.min(e.vy+GRAV,12);e.x+=e.vx;
       if(collideX(e))e.vx=-e.vx;
@@ -838,7 +867,7 @@ function die(){
 function alive(i){return players[i].lives>0&&!players[i].done;}
 function pick(){const n=players.length;for(let k=1;k<=n;k++){const i=(cur+k)%n;if(alive(i))return i;}return -1;}
 function handleDeath(){
-  const prev=cur;P().lives--;P().lost=true;P().shield=easy;
+  const prev=cur;P().lives--;P().lost=true;P().shield=easy;saveGame();
   if(P().lives<=0&&!rewardUsed&&rewardReady())return offerReward(prev);
   afterDeath(prev);
 }
@@ -904,6 +933,8 @@ function finishLevel(){
   const ratio=lvl.totalGems?pl.gems.size/lvl.totalGems:1;
   const st=1+(ratio>=0.4?1:0)+(ratio>=0.7&&!pl.lost?1:0);
   pl.stars+=st;pl.lastStars=st;addScore(st*100);pl.gems=new Set();pl.lost=false;
+  // nagrada u kasicu: što dalji nivo, to više dragulja; 3 zvezdice donose dodatak
+  pl.lastBonus=5*(pl.level+1)+(st===3?20:0);addBank(pl.lastBonus);
   pl.level++;pl.cp=null;
   if(LEVELS[pl.level-1].boss===1&&pl.level<LEVELS.length){addScore(500);return startEnding(()=>prepareTurn(cur,'level',prev),'princess');}
   if(pl.level>=LEVELS.length){
@@ -958,17 +989,29 @@ function prepareTurn(i,reason,prev){
   if(reason==='switch')kick=players[prev].lives>0?tr(pn+' je '+gw(pc,'izgubio','izgubila')+' život',pn+' lost a life'):tr(pn+' je '+gw(pc,'ispao','ispala')+' iz igre',pn+' is out of the game');
   if(reason==='again'){kick=players.length===2?(()=>{const o=players[1-i];return o.done?tr(o.c.name+' je već '+gw(o.c,'prešao','prešla')+' sve nivoe',o.c.name+' has finished all levels'):tr(o.c.name+' više nema života',o.c.name+' has no lives left');})():tr('Ostali su završili igru','The others have finished');title=tr(nm+' nastavlja!',nm+' keeps going!');}
   if(reason==='reward'){kick=tr(gw(pl.c,'Dobio','Dobila')+' si još jedan život','You got one more life');title=tr('Napred, '+pl.c.voc+'!','Go, '+nm+'!');}
-  if(reason==='level'){kick=tr('Nivo pređen!','Level complete!');title=tr('Bravo, '+pl.c.voc+'!','Well done, '+nm+'!');}
+  if(reason==='continue'){kick=tr('Nastavljaš igru','Continuing your game');title=tr(gw(pl.c,'Dobro došao','Dobro došla')+' nazad, '+pl.c.voc+'!','Welcome back, '+nm+'!');}
+  if(reason==='level'){kick=tr('Nivo pređen!','Level complete!')+(pl.lastBonus?' · +'+pl.lastBonus+' ◆':'');title=tr('Bravo, '+pl.c.voc+'!','Well done, '+nm+'!');}
   if(reason==='done')kick=tr(pn+' je '+gw(pc,'prešao','prešla')+' sve nivoe!',pn+' finished all levels!');
   const LV=LEVELS[pl.level];
   showCard({kick,title,color:pl.c.jacket,heroes:[pl.c],stars:reason==='level'?pl.lastStars:0,
     info:tr(`Nivo ${pl.level+1} od ${LEVELS.length}: ${LV.name}`,`Level ${pl.level+1} of ${LEVELS.length}: ${LV.en}`)+(LV.theme==='zima'?tr(' (pazi, led je klizav!)',' (careful, the ice is slippery!)'):'')+(LV.boss?tr(' Na kraju te čeka veliki zmaj!',' A big dragon waits at the end!'):''),
     hint:'♥ '+pl.lives+(pl.lives===1?tr(' život',' life'):tr(' života',' lives'))+(easy?tr(' · lako · štit',' · easy · shield'):knight?tr(' · viteški · bez kontrolne tačke',' · knightly · no checkpoint'):hard?tr(' · teško',' · hard'):'')+(pl.cp?tr(' · krećeš od kontrolne tačke',' · starting from the checkpoint'):'')+(!solo&&reason==='start'?tr(' · redosled: ',' · order: ')+players.map(p=>p.c.name).join(' → '):''),
     btn:tr('Kreni!','Go!'),go:()=>{hideCard();state='play';}});
+  saveGame();
 }
+/* ---------- Sačuvana igra: nastavlja se posle zatvaranja aplikacije ---------- */
+const SAVE_KEY='ptv-igra';
+function saveGame(){if(!players||NET)return;store.set(SAVE_KEY,{v:1,order:setup.order,diff:knight?'knight':hard?'hard':easy?'easy':'normal',cur,st:netState()});}
+function clearSave(){try{localStorage.removeItem(SAVE_KEY);}catch(e){}}
+function loadSave(){const s=store.get(SAVE_KEY,null);
+  if(!s||s.v!==1||!Array.isArray(s.order)||!s.st||!Array.isArray(s.st.p)||s.st.p.length!==s.order.length)return null;
+  if(!s.order.every(i=>HEROES[i]))return null;
+  if(!s.st.p.some(q=>q.lives>0&&!q.done&&q.level<LEVELS.length))return null;
+  return s;}
+function continueGame(sv){startGame({order:sv.order,diff:sv.diff},sv);}
 function gameOver(){
   if(NET&&NET.on&&!NET.applying)netSend({t:'over',st:netState()});
-  state='over';
+  state='over';if(!NET)clearSave();
   const ps=players;const best=Math.max(...ps.map(p=>p.score));
   const winners=ps.filter(p=>p.score===best);
   const rows=ps.map(p=>({c:p.c,line:p.done?tr(gw(p.c,'Prešao','Prešla')+' sve nivoe','Finished all levels'):tr(gw(p.c,'Stigao','Stigla')+' do nivoa '+(p.level+1),'Reached level '+(p.level+1)),stars:p.stars,score:p.score}));
@@ -1012,20 +1055,24 @@ function showScores(back){
     info:a.length?'':tr('Još nema rezultata. Odigraj prvu igru!','No scores yet. Play your first game!'),
     table:a,btn:tr('Nazad','Back'),go:back||(()=>showTitle())});
 }
-function startGame(s){
+function startGame(s,sv){
   setup=s;const d=s.diff||(s.easy?'easy':'normal');easy=d==='easy';knight=d==='knight';hard=d==='hard'||knight;
   players=s.order.map(i=>({c:HEROES[i],idx:i,lives:easy?5:knight?1:hard?2:3,shield:easy,score:0,coins:0,level:START_LEVEL,cp:null,done:false,weapon:TEST_HORSE?2:0,armor:TEST_HORSE,horse:TEST_HORSE,
     stars:0,lastStars:0,gems:new Set(),lost:false,mag:0,inv2:0,dbl:false}));
   if(s.devs)players.forEach((p,i)=>p.dev=s.devs[i]);
-  hudKey='';cur=0;rewardUsed=false;prepareTurn(0,'start',null);
+  hudKey='';cur=0;rewardUsed=false;
+  if(sv){netApply(sv.st);players.forEach(p=>{p.cp=knight?null:p.cp;});cur=sv.cur|0;if(!alive(cur)){const n=pick();cur=n<0?0:n;}return prepareTurn(cur,'continue',null);}
+  prepareTurn(0,'start',null);
 }
 function showTitle(){
   if(NET)netStop();
   state='title';players=null;hudKey='';lvl=build(LEVELS[0]);cam=0;
+  const sv=loadSave();
   showCard({kick:tr('Jedan ili više igrača · ','One or more players · ')+LEVELS.length+tr(' nivoa',' levels'),title:tr('Put do Kraljeve tvrđave',"Road to the King's Castle"),color:'#ffc62b',heroes:HEROES,
     info:tr('Mali vitezovi kreću u avanturu. Skupljaj drago kamenje, skači na gobline, otvaraj sanduke i stigni do Kraljeve tvrđave.',"Little knights set off on an adventure. Collect gems, jump on goblins, open chests and reach the King's Castle."),
     hint:matchMedia('(hover:hover) and (pointer:fine)').matches?tr('← → kretanje · ↑ ili razmak skok · {X} udaraj mačem (sa praćkom: pucaj) · {P} pauza','← → move · ↑ or space jump · X sword (with a slingshot: shoot) · P pause'):tr('◀ ▶ kretanje, SKOK skok, UDARAJ mačem (kad pokupiš praćku: PUCAJ). Najbolje se igra kad okreneš telefon.','◀ ▶ move, JUMP to jump, HIT with the sword (with a slingshot: SHOOT). Best played with the phone sideways.'),
-    btn:tr('Izaberi igrače','Choose players'),go:()=>choosePlayers([]),
+    ...(sv?{btn:tr('Nastavi igru · nivo ','Continue · level ')+(sv.st.p[Math.min(sv.cur|0,sv.st.p.length-1)].level+1),go:()=>continueGame(sv),alt:{label:tr('Nova igra','New game'),fn:()=>choosePlayers([])}}
+       :{btn:tr('Izaberi igrače','Choose players'),go:()=>choosePlayers([])}),
     record:bestLine(),
     links:[...(netOK()?[{label:tr('Igra preko Blututa','Bluetooth game'),fn:()=>netMenu()}]:[]),{label:'◆ '+bank+' · '+tr('Kostimi','Costumes'),fn:()=>showCostumes()},{label:tr('Najbolji rezultati','Best scores'),fn:()=>showScores()}]});
   titleCard=true;
@@ -1335,8 +1382,12 @@ function updHud(){
 /* ---------- Resize ---------- */
 function resize(){
   const r=stage.getBoundingClientRect();const aw=Math.max(100,r.width),ah=Math.max(100,r.height);
-  VW=Math.max(10*T,Math.min(40*T,Math.round(H*aw/ah)));
+  portrait=aw<ah*0.95;
+  // uspravno: malo udaljen pogled da se vidi više nivoa ispred viteza
+  VW=Math.max(portrait?13*T:10*T,Math.min(40*T,Math.round(H*aw/ah)));
   scale=Math.min(aw/VW,ah/H);dpr=Math.min(2,window.devicePixelRatio||1);
+  // veliki ekrani (tablet): ograniči broj piksela da igra ide glatko
+  {const css=VW*scale*H*scale,MAXPX=1.3e6;if(css*dpr*dpr>MAXPX)dpr=Math.max(1,Math.sqrt(MAXPX/css));}
   cv.style.width=Math.floor(VW*scale)+'px';cv.style.height=Math.floor(H*scale)+'px';
   cv.width=Math.round(VW*scale*dpr);cv.height=Math.round(H*scale*dpr);
   if(lvl)cam=clampCam(cam);
@@ -1879,6 +1930,17 @@ function drawEnemy(e){
     ctx.fillStyle='#e8c99a';ell(ctx,f>0?x+21:x+5,y+15,6,5);
     ctx.fillStyle='#1d1d26';circ(ctx,f>0?x+27:x-1,y+15,2);circ(ctx,f>0?x+21:x+5,y+12,1.4);
     const st=Math.sin(e.t*0.3)*2;ctx.fillStyle='#3a2414';ctx.fillRect(x+6+st,y+19,4,2);ctx.fillRect(x+16-st,y+19,4,2);
+  }else if(e.type==='mis'){
+    // šišmiš
+    const cx=x+13,cy=y+8,fl=Math.sin(e.t*0.5);
+    ctx.save();ctx.translate(cx,cy);
+    ctx.fillStyle='#4a3566';
+    for(const sd of [-1,1]){ctx.beginPath();ctx.moveTo(sd*4,-1);ctx.quadraticCurveTo(sd*10,-6-fl*7,sd*17,-3-fl*8);ctx.lineTo(sd*14,1-fl*3);ctx.lineTo(sd*11,-1-fl*2);ctx.lineTo(sd*8,3-fl);ctx.lineTo(sd*4,3);ctx.fill();}
+    ctx.fillStyle='#5d4580';ell(ctx,0,1,6,6.5);
+    ctx.beginPath();ctx.moveTo(-5,-3);ctx.lineTo(-4,-9);ctx.lineTo(-1,-4);ctx.fill();ctx.beginPath();ctx.moveTo(5,-3);ctx.lineTo(4,-9);ctx.lineTo(1,-4);ctx.fill();
+    ctx.fillStyle='#ffd23a';circ(ctx,-2.2,0,1.7);circ(ctx,2.2,0,1.7);ctx.fillStyle='#1d1d26';circ(ctx,-2.2+e.face*0.5,0,0.8);circ(ctx,2.2+e.face*0.5,0,0.8);
+    ctx.fillStyle='#fff';ctx.fillRect(-1.6,3.2,1.1,1.6);ctx.fillRect(0.5,3.2,1.1,1.6);
+    ctx.restore();
   }else{
     // small dragon
     const fl=Math.sin(e.t*0.35),cx=x+13,cy=y+10,F=f>0?1:-1;
@@ -2126,6 +2188,20 @@ function render(){
     else{ctx.globalAlpha=Math.min(1,a*2);ctx.font='800 16px "Rubik",sans-serif';ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='rgba(20,24,51,.85)';ctx.strokeText(p.txt,p.x,p.y);ctx.fillStyle=p.col;ctx.fillText(p.txt,p.x,p.y);ctx.globalAlpha=1;}
   }
   ctx.restore();
+  // vetar: bele pruge preko ekrana i upozorenje
+  if(lvl.wind&&state==='play'){const wg=windGust();
+    if(wg>0){ctx.save();ctx.strokeStyle='rgba(255,255,255,'+(0.55*wg)+')';ctx.lineWidth=2.5;ctx.lineCap='round';
+      for(let i=0;i<14;i++){const yy=30+hash(i,7)*(H-80),sp=9+hash(i,3)*7,len=40+hash(i,5)*60,xx=VW+60-((tick*sp+hash(i,9)*900)%(VW+200));
+        ctx.beginPath();ctx.moveTo(xx,yy);ctx.quadraticCurveTo(xx+len/2,yy-6*Math.sin(tick*0.2+i),xx+len,yy);ctx.stroke();}
+      ctx.restore();}
+    if(windWarn()||wg>0.2){ctx.globalAlpha=windWarn()?(tick%20<10?1:0.55):1;ctx.font='800 18px "Rubik",sans-serif';ctx.textAlign='center';ctx.lineWidth=5;ctx.strokeStyle='rgba(20,24,51,.85)';
+      const wt=cyr(tr('« Vetar! Drži se!','« Wind! Hold on!'));ctx.strokeText(wt,VW/2,H-24);ctx.fillStyle='#dff3ff';ctx.fillText(wt,VW/2,H-24);ctx.globalAlpha=1;}
+  }
+  // uspravan telefon: kratko predloži okretanje
+  if(state==='play'&&portrait&&lvl.t<260&&!finePtr){
+    ctx.globalAlpha=Math.min(1,(260-lvl.t)/30);ctx.font='800 17px "Rubik",sans-serif';ctx.textAlign='center';const txt=cyr(tr('↻ Okreni telefon za veći prikaz','↻ Turn your phone for a bigger view'));const w=ctx.measureText(txt).width+26;
+    ctx.fillStyle='rgba(19,24,51,.8)';rr(ctx,Math.round((VW-w)/2),H-58,w,34,12);ctx.fill();ctx.fillStyle='#ffe27a';ctx.fillText(txt,VW/2,H-35);ctx.globalAlpha=1;
+  }
   // level name chip
   if(state==='play'&&lvl.t<150||state==='card'){
     ctx.globalAlpha=state==='card'?0:Math.min(1,(150-lvl.t)/30);
