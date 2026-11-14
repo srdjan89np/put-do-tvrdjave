@@ -2194,7 +2194,7 @@ function render(){
       for(let i=0;i<14;i++){const yy=30+hash(i,7)*(H-80),sp=9+hash(i,3)*7,len=40+hash(i,5)*60,xx=VW+60-((tick*sp+hash(i,9)*900)%(VW+200));
         ctx.beginPath();ctx.moveTo(xx,yy);ctx.quadraticCurveTo(xx+len/2,yy-6*Math.sin(tick*0.2+i),xx+len,yy);ctx.stroke();}
       ctx.restore();}
-    if(windWarn()||wg>0.2){ctx.globalAlpha=windWarn()?(tick%20<10?1:0.55):1;ctx.font='800 18px "Rubik",sans-serif';ctx.textAlign='center';ctx.lineWidth=5;ctx.strokeStyle='rgba(20,24,51,.85)';
+    if(windWarn()||wg>0.2){ctx.globalAlpha=windWarn()?(tick%20<10?1:0.55):1;ctx.font='800 18px "Rubik",sans-serif';ctx.textAlign='center';ctx.lineWidth=5;ctx.lineJoin='round';ctx.strokeStyle='rgba(20,24,51,.85)';
       const wt=cyr(tr('« Vetar! Drži se!','« Wind! Hold on!'));ctx.strokeText(wt,VW/2,H-24);ctx.fillStyle='#dff3ff';ctx.fillText(wt,VW/2,H-24);ctx.globalAlpha=1;}
   }
   // uspravan telefon: kratko predloži okretanje
