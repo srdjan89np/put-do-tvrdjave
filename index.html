@@ -45,6 +45,7 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
 .pl .stats{display:flex;gap:10px;font-size:12px;color:var(--muted);font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden}
 .pl .stats span:first-child{color:var(--ink)}
 .pl .coin{color:var(--gold)}
+@media (orientation:portrait){.pls.one .stats{flex-wrap:wrap;white-space:normal;gap:0 10px}}
 /* 3-4 igrača: zbijenija polja (ime / srca + poeni / nivo) */
 .pls.many{gap:4px}
 .pls.many .pl{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"n n" "h s" "l l";column-gap:3px;row-gap:1px;padding:4px 5px;align-items:baseline}
@@ -133,6 +134,11 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
 .pad .shoot.sword.on{background:#5d6f94;box-shadow:0 1px 0 #2a3450}
 .pl .wp{color:#ffb36b}
 @media (max-width:400px){.pl b{font-size:16px;letter-spacing:0}.pl .hearts{letter-spacing:-1px;font-size:11px}.pl .top{gap:3px}.pad button{width:58px}.pad .jump{width:82px;font-size:20px;padding:0}.pad .shoot{width:88px;font-size:14px}.pad .shoot.sword{font-size:13px}}
+@media (max-width:400px){.opt b{font-size:19px}.opt{padding:10px 5px}}
+@media (max-width:340px){.pad{gap:6px}.pad .dirs{gap:6px}.pad button{width:50px}.pad .jump{width:70px;font-size:18px}.pad .shoot{width:74px;font-size:12px}.pad .shoot.sword{font-size:11px}.opt b{font-size:17px}.pls.many{gap:3px}.pls.many .pl{padding:4px 3px}.pls.many .pl b{font-size:11px}.pls.many .pl .sc{font-size:9px}.pls.many .pl .hearts{font-size:9px}.card{padding:14px 12px}.acts{margin:0 -12px -18px;padding:8px 12px 12px;width:calc(100% + 24px)}}
+@media (orientation:portrait) and (max-width:600px){.card{position:fixed;left:0;right:0;margin-inline:auto;width:fit-content;top:calc(50% + 26px);transform:translateY(-50%);z-index:20;max-width:min(92vw,440px);max-height:calc(100vh - 68px);max-height:calc(100dvh - 68px)}.modal .pad{visibility:hidden}}
+@media (orientation:portrait) and (max-height:600px){.card .hint{display:none}}
+@media (min-width:700px) and (orientation:portrait){.pls.many .pl{padding:6px 10px}.pls.many .pl b{font-size:17px}.pls.many .pl .sc{font-size:15px!important}.pls.many .pl .hearts{font-size:14px}.pls.many .pl .lv{font-size:12px}}
 @media (hover:hover) and (pointer:fine){.pad{display:none}}
 @media (max-height:520px) and (orientation:landscape){
   #app{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:minmax(0,1fr);gap:0 10px;padding-block:6px;padding-inline:max(10px,env(safe-area-inset-left,0px)) max(10px,env(safe-area-inset-right,0px));max-width:none}
@@ -147,7 +153,8 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
   .opts .opt .badge{top:50%;margin-top:-11px;right:8px}
   .pl b{font-size:14px}.pl .stats{font-size:11px}
   #c{border-radius:0;box-shadow:none}
-  .card{padding:10px 16px;gap:6px;max-height:calc(100% - 10px);max-width:min(94%,560px)}
+  .card{padding:10px 16px;gap:6px;position:fixed;left:0;right:0;margin-inline:auto;width:fit-content;top:50%;transform:translateY(-50%);z-index:20;max-height:calc(100vh - 12px);max-height:calc(100dvh - 12px);max-width:min(calc(100vw - 24px),560px)}
+  .pls.many .pl{padding:2px 4px}.pls.many .pl .sc{font-size:10px}.pls.many .pl .hearts{font-size:10px}
   .acts{bottom:-10px;margin:0 -16px -10px;padding:6px 16px 8px;width:calc(100% + 32px)}
   .card h2{font-size:24px}
   .card .info{font-size:13px;line-height:1.35;max-width:52ch}
@@ -172,6 +179,7 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
   .pad .shoot.sword{font-size:15px}
 }
 @media (hover:hover) and (pointer:fine){.pad,.pad .dirs{display:none!important}}
+@media (max-height:520px) and (orientation:landscape) and (max-width:830px){body.tt .card{left:130px;right:12px;max-width:560px}}
 @media (prefers-reduced-motion:reduce){.pl{transition:none}.stars span{animation:none}}
 </style>
 </head>
@@ -1353,7 +1361,7 @@ function applyStatic(){
 }
 function buildHud(){
   hudP.innerHTML='';hudEls=[];
-  const n=players?players.length:0;hudP.style.setProperty('--n',Math.max(n,1));hudP.classList.toggle('many',n>=3);
+  const n=players?players.length:0;hudP.style.setProperty('--n',Math.max(n,1));hudP.classList.toggle('many',n>=3);hudP.classList.toggle('one',n===1);
   (players||[]).forEach(p=>{const el=document.createElement('div');el.className='pl';el.style.setProperty('--c',p.c.jacket);
     el.innerHTML='<div class="top"><b></b><span class="hearts"></span></div><div class="stats"><span class="lv"></span><span class="coin"></span><span class="sc"></span></div>';
     el.querySelector('b').textContent=cyr(p.c.name);hudP.appendChild(el);hudEls.push(el);});
@@ -1363,7 +1371,7 @@ btnLang.addEventListener('click',()=>{if(state==='title')setLang(lang==='en'?'sr
 function updHud(){
   const showPause=!!players&&(state==='play'||state==='paused');
   if(btnPause.hidden===showPause)btnPause.hidden=!showPause;
-  const showLang=titleCard&&!card.hidden&&!players;if(btnLang.hidden===showLang)btnLang.hidden=!showLang;
+  const showLang=titleCard&&!card.hidden&&!players;if(btnLang.hidden===showLang){btnLang.hidden=!showLang;document.body.classList.toggle('tt',showLang);}
   {const lt='🌐 '+(lang==='en'?'Српски':'English');if(btnLang.textContent!==lt){btnLang.textContent=lt;btnLang.setAttribute('aria-label',lang==='en'?'Српски језик':'English language');}}
   if(!players){if(hudKey==='none')return;hudKey='none';setShootBtn(false);buildHud();return;}
   if(hudEls.length!==players.length||hudKey==='none'||hudKey==='')buildHud();
@@ -1372,10 +1380,10 @@ function updHud(){
   setShootBtn(!!P().weapon);
   players.forEach((p,i)=>{const el=hudEls[i];
     el.classList.toggle('on',i===cur&&state!=='over');el.classList.toggle('out',p.lives<=0);
-    el.querySelector('.hearts').textContent=p.lives>0?(players.length>=3?'♥'+p.lives:'♥'.repeat(Math.min(p.lives,5))+(p.lives>5?'+':'')):cyr(tr(gw(p.c,'ispao','ispala'),'out'));
+    el.querySelector('.hearts').textContent=p.lives>0?(players.length>=3||(players.length===2&&p.lives>3)?'♥'+p.lives:'♥'.repeat(Math.min(p.lives,5))+(p.lives>5?'+':'')):cyr(tr(gw(p.c,'ispao','ispala'),'out'));
     el.querySelector('.lv').textContent=cyr(p.done?tr('Kraj ★','Done ★'):tr('Nivo ','Level ')+(p.level+1));
     el.querySelector('.coin').textContent=cyr('◆ '+p.coins+(p.weapon===2?tr(' · Super praćka',' · Super slingshot'):p.weapon?tr(' · Praćka',' · Slingshot'):'')+(p.shield?tr(' · Štit',' · Shield'):'')+(p.armor?tr(' · Oklop',' · Armor'):'')+(p.horse?tr(' · Konj',' · Horse'):'')+(p.mag>0?' · Magnet':'')+(p.inv2>0?tr(' · Nevidljivost',' · Invisible'):'')+(p.dbl?tr(' · Dupli skok',' · Double jump'):''));
-    {const sc=el.querySelector('.sc');sc.textContent=p.score;sc.style.fontSize=players.length>=3&&p.score>=10000?'9.5px':'';}
+    {const sc=el.querySelector('.sc');sc.textContent=p.score;sc.style.fontSize=players.length>=3&&p.score>=100000?'7.5px':players.length>=3&&p.score>=10000?'8.5px':'';}
   });
 }
 
@@ -2198,7 +2206,7 @@ function render(){
       const wt=cyr(tr('« Vetar! Drži se!','« Wind! Hold on!'));ctx.strokeText(wt,VW/2,H-24);ctx.fillStyle='#dff3ff';ctx.fillText(wt,VW/2,H-24);ctx.globalAlpha=1;}
   }
   // uspravan telefon: kratko predloži okretanje
-  if(state==='play'&&portrait&&lvl.t<260&&!finePtr){
+  if(state==='play'&&portrait&&lvl.t<260&&!finePtr&&innerWidth<600){
     ctx.globalAlpha=Math.min(1,(260-lvl.t)/30);ctx.font='800 17px "Rubik",sans-serif';ctx.textAlign='center';const txt=cyr(tr('↻ Okreni telefon za veći prikaz','↻ Turn your phone for a bigger view'));const w=ctx.measureText(txt).width+26;
     ctx.fillStyle='rgba(19,24,51,.8)';rr(ctx,Math.round((VW-w)/2),H-58,w,34,12);ctx.fill();ctx.fillStyle='#ffe27a';ctx.fillText(txt,VW/2,H-35);ctx.globalAlpha=1;
   }
