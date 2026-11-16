@@ -110,7 +110,7 @@ Igra je na srpskom (ćirilica). Na početnom ekranu dugme **🌐 English** gore 
 9. Олуја у облацима
 10. Краљева тврђава
 
-Neprijatelji su goblini, ježevi (na njih ne sme da se skoči), mali zmajevi i, u pećinama, šišmiši koji se obrušavaju. Svi mogu da se obore mačem. Prepreke su provalije, lava, šiljci, kružne testere, opruge i pokretne platforme, a u nivou „Олуја у облацима“ povremeno duva vetar koji gura viteza unazad. Svaki nivo ima drugačiju kombinaciju poklona (magnet, nevidljivost, dupli skok), a nivoi 3, 6 i 9 imaju po tri.
+Neprijatelji su goblini, ježevi (na njih ne sme da se skoči), mali zmajevi, u pećinama šišmiši koji se obrušavaju, a u nivoima 4, 6 i 10 kornjače sa bodljama (na njih ne sme da se skoči; prvi udarac ih uvuče u oklop na oko 3 sekunde, drugi ih pobeđuje i donosi 150 poena; na lakoj težini dovoljan je jedan udarac). Svi mogu da se obore mačem. Prepreke su provalije, lava, šiljci, kružne testere, opruge i pokretne platforme, a u nivou „Олуја у облацима“ povremeno duva vetar koji gura viteza unazad. Svaki nivo ima drugačiju kombinaciju poklona (magnet, nevidljivost, dupli skok), a nivoi 3, 6 i 9 imaju po tri.
 
 Kontrolna tačka je otprilike na pola nivoa (na najbližem sigurnom tlu). Kad se telefon drži uspravno, pogled je malo udaljen da se vidi više nivoa, a igra predloži okretanje telefona. Na tabletima se slika crta u nešto manjoj rezoluciji da igra ide glatko.
 
