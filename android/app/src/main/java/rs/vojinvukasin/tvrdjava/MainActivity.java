@@ -234,7 +234,10 @@ public class MainActivity extends Activity {
 
     /** Radi na Androidu 13 i novijim (bez dozvole za lokaciju), uz Google Play usluge. */
     private boolean netAvailable() {
-        return Build.VERSION.SDK_INT >= 33 && GoogleApiAvailability.getInstance()
+        android.content.pm.PackageManager pm = getPackageManager();
+        boolean radio = pm.hasSystemFeature(android.content.pm.PackageManager.FEATURE_BLUETOOTH)
+                || pm.hasSystemFeature(android.content.pm.PackageManager.FEATURE_WIFI);
+        return Build.VERSION.SDK_INT >= 33 && radio && GoogleApiAvailability.getInstance()
                 .isGooglePlayServicesAvailable(this) == ConnectionResult.SUCCESS;
     }
 
