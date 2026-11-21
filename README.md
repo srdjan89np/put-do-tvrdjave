@@ -86,6 +86,7 @@ Kad izgubi život, vitez gubi sve poklone.
 
 - Svaki skupljeni dragi kamen ide u **kasicu**, koja se čuva na uređaju.
 - Na kraju svakog nivoa kasica dobija nagradu: 5 ◆ za 1. nivo, 10 za 2. i tako dalje do 50 za 10. nivo, plus 20 ◆ za 3 zvezdice.
+- U kostimima jednom dnevno može da se pogleda kratka reklama za +30 ◆ (samo u Android aplikaciji, kad je reklama spremna).
 - U glavnom meniju, pod **Kostimi**, kamenjem se kupuju gusarski šešir (800), štit sa lavom (1500), kruna (2500) i zlatni plašt (4000). Kupljen kostim mogu da nose svi vitezovi, svaki po svom izboru.
 - **Dnevni poklon:** prvi put svakog dana igra daje kamenje za kasicu (50, pa sve više ako se dolazi više dana zaredom, do 110).
 

@@ -911,6 +911,27 @@ function watchReward(prev){
   rewardTimer=setTimeout(()=>finish(false),90000);
   try{window.AndroidAds.show();}catch(e){finish(false);}
 }
+/* ---------- Reklama za dragulje: jednom dnevno +30 ◆ (u kostimima) ---------- */
+const AD_GEMS=30;
+function gemAdToday(){return store.get('ptv-reklama-dan','')===ymd(new Date());}
+function gemAdLinks(back){
+  if(gemAdToday()||!rewardReady())return null;
+  return [{label:tr('▶ Pogledaj reklamu: +'+AD_GEMS+' ◆ (jednom dnevno)','▶ Watch an ad: +'+AD_GEMS+' ◆ (once a day)'),fn:()=>watchGemAd(back)}];
+}
+function watchGemAd(back){
+  showCard({kick:tr('Reklama','Ad'),title:tr('Samo trenutak…','Just a moment…'),color:'#ffc62b',info:tr('Reklama se učitava.','The ad is loading.')});
+  let done=false,timer=null;
+  const finish=ok=>{if(done)return;done=true;clearTimeout(timer);window.onRewardResult=null;
+    if(ok){store.set('ptv-reklama-dan',ymd(new Date()));addBank(AD_GEMS);sfx('life');
+      showCard({kick:tr('Kasica','Piggy bank'),title:'+'+AD_GEMS+' ◆',color:'#ffc62b',heroes:HEROES,
+        info:tr('Hvala! Sada u kasici imaš ◆ '+bank+'. Nova reklama za dragulje sutra.','Thanks! You now have ◆ '+bank+'. Another gem ad tomorrow.'),
+        btn:tr('Nazad na kostime','Back to costumes'),go:back});}
+    else showCard({kick:tr('Reklama','Ad'),title:tr('Reklama nije dostupna','The ad is not available'),color:'#ffc62b',
+      info:tr('Pokušaj ponovo malo kasnije.','Please try again a bit later.'),btn:tr('Nazad','Back'),go:back});};
+  window.onRewardResult=ok=>finish(!!ok);
+  timer=setTimeout(()=>finish(false),90000);
+  try{window.AndroidAds.show();}catch(e){finish(false);}
+}
 function startWin(){
   state='win';const h=hero;h.vx=0;h.phase='walk';h.pt=0;h.face=1;
 }
@@ -1239,7 +1260,7 @@ function showCostumes(focus){
   showCard({kick:tr('Kostimi','Costumes'),title:tr('Garderoba','Wardrobe'),color:'#ffc62b',
     info:tr('U kasici imaš ◆ '+bank+'. Svaki dragi kamen iz igre ide u kasicu.','You have ◆ '+bank+' in your piggy bank. Every gem you collect goes in.'),
     options:HEROES.map((c,i)=>({label:c.name,sub:cosSummary(c),hero:c,color:c.jacket,fn:()=>showHeroCostume(i)})),
-    focus,btn:tr('Nazad','Back'),go:()=>showTitle()});
+    focus,btn:tr('Nazad','Back'),go:()=>showTitle(),links:gemAdLinks(()=>showCostumes(focus))});
 }
 function showHeroCostume(i,focus){
   const c=HEROES[i];
@@ -1256,7 +1277,7 @@ function showHeroCostume(i,focus){
         saveWear();showHeroCostume(i,j);}};});
   showCard({kick:tr('Kostimi · ◆ ','Costumes · ◆ ')+bank,title:c.name,color:c.jacket,heroes:[c],
     info:tr('Kupljen kostim mogu da nose svi vitezovi.','Once bought, every knight can wear it.'),
-    options:opts,focus,btn:tr('Gotovo','Done'),go:()=>showCostumes(i),alt:{label:tr('Izađi','Exit'),fn:()=>showTitle()}});
+    options:opts,focus,btn:tr('Gotovo','Done'),go:()=>showCostumes(i),alt:{label:tr('Izađi','Exit'),fn:()=>showTitle()},links:gemAdLinks(()=>showHeroCostume(i,focus))});
 }
 function ymd(d){return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
 function dailyGift(){
