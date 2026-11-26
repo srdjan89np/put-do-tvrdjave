@@ -96,7 +96,7 @@ Igra se sama čuva na početku svakog nivoa, posle izgubljenog života i na kont
 
 ### Položaj ekrana
 
-Na početnom ekranu, ispod dugmeta za jezik, bira se kako se drži telefon: **Položeno** (podrazumevano, okreće se samo između dve položene strane), **Uspravno** ili **Automatski** (okreće se sa telefonom, osim kad je rotacija na telefonu zaključana). Izbor se pamti. Dugme postoji samo u Android aplikaciji.
+Na početnom ekranu, ispod dugmeta za jezik, bira se kako se drži telefon: **Položeno** (okreće se samo između dve položene strane), **Uspravno** ili **Automatski** (podrazumevano; okreće se sa telefonom, osim kad je rotacija na telefonu zaključana). Izbor se pamti. Dugme postoji samo u Android aplikaciji.
 
 ### Jezik
 

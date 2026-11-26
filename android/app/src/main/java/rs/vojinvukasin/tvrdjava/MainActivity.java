@@ -111,7 +111,7 @@ public class MainActivity extends Activity {
         web.addJavascriptInterface(new AdsBridge(), "AndroidAds");
         web.addJavascriptInterface(new NetBridge(), "AndroidNet");
         web.addJavascriptInterface(new ScreenBridge(), "AndroidScreen");
-        applyOrientation(getSharedPreferences("ekran", MODE_PRIVATE).getString("polozaj", "land"));
+        applyOrientation(getSharedPreferences("ekran", MODE_PRIVATE).getString("polozaj", "auto"));
 
         // Igra gore, baner dole.
         LinearLayout root = new LinearLayout(this);
@@ -402,22 +402,22 @@ public class MainActivity extends Activity {
     private void applyOrientation(String mode) {
         int o;
         if ("port".equals(mode)) o = ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT;
-        else if ("auto".equals(mode)) o = ActivityInfo.SCREEN_ORIENTATION_FULL_USER;
-        else o = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE;
+        else if ("land".equals(mode)) o = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE;
+        else o = ActivityInfo.SCREEN_ORIENTATION_FULL_USER;
         if (getRequestedOrientation() != o) setRequestedOrientation(o);
     }
 
     private class ScreenBridge {
         @JavascriptInterface
         public void set(String mode) {
-            final String m = ("port".equals(mode) || "auto".equals(mode)) ? mode : "land";
+            final String m = ("port".equals(mode) || "land".equals(mode)) ? mode : "auto";
             getSharedPreferences("ekran", MODE_PRIVATE).edit().putString("polozaj", m).apply();
             runOnUiThread(() -> applyOrientation(m));
         }
 
         @JavascriptInterface
         public String get() {
-            return getSharedPreferences("ekran", MODE_PRIVATE).getString("polozaj", "land");
+            return getSharedPreferences("ekran", MODE_PRIVATE).getString("polozaj", "auto");
         }
     }
 

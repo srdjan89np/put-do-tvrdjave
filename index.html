@@ -1402,7 +1402,7 @@ const btnRot=document.getElementById('btnRot');
 const ROT={land:['📱','Položeno','Landscape'],port:['📱','Uspravno','Portrait'],auto:['📱','Automatski','Automatic']};
 function rotOK(){return !!(window.AndroidScreen&&window.AndroidScreen.set);}
 let rotCache=null;
-function rotMode(){if(rotCache)return rotCache;try{const m=window.AndroidScreen.get();rotCache=ROT[m]?m:'land';}catch(e){rotCache='land';}return rotCache;}
+function rotMode(){if(rotCache)return rotCache;try{const m=window.AndroidScreen.get();rotCache=ROT[m]?m:'auto';}catch(e){rotCache='auto';}return rotCache;}
 function chooseRotation(){
   const cur=rotMode();
   showCard({kick:tr('Ekran','Screen'),title:tr('Kako držiš telefon?','How do you hold the phone?'),color:'#5b8def',
