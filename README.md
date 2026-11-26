@@ -94,6 +94,10 @@ Kad izgubi život, vitez gubi sve poklone.
 
 Igra se sama čuva na početku svakog nivoa, posle izgubljenog života i na kontrolnoj tački. Ako se aplikacija zatvori, na početnom ekranu stoji **Настави игру · ниво X** (i ispod **Нова игра**). Posle kraja igre sačuvana igra se briše. Igra preko Blututa se ne čuva.
 
+### Položaj ekrana
+
+Na početnom ekranu, ispod dugmeta za jezik, bira se kako se drži telefon: **Položeno** (podrazumevano, okreće se samo između dve položene strane), **Uspravno** ili **Automatski** (okreće se sa telefonom, osim kad je rotacija na telefonu zaključana). Izbor se pamti. Dugme postoji samo u Android aplikaciji.
+
 ### Jezik
 
 Igra je na srpskom (ćirilica). Na početnom ekranu dugme **🌐 English** gore levo prebacuje igru na engleski, a **🌐 Српски** vraća na srpski. Izbor se pamti.

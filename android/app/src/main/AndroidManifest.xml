@@ -42,7 +42,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|keyboard|navigation|uiMode|smallestScreenSize"
-            android:screenOrientation="fullSensor"
+            android:screenOrientation="sensorLandscape"
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

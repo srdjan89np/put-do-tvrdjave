@@ -63,7 +63,8 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
 .mid button:focus-visible,.pad button:focus-visible,.card button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 #btnSound.off{color:var(--muted);text-decoration:line-through}
 #btnLang{position:fixed;left:max(10px,env(safe-area-inset-left));top:10px;z-index:30;height:34px;padding:0 14px;border-radius:10px;border:2px solid rgba(255,255,255,.18);background:var(--panel-2);color:var(--ink);font:800 15px var(--body);cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.25)}
-#btnLang:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+#btnLang:focus-visible,#btnRot:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+#btnRot{position:fixed;left:max(10px,env(safe-area-inset-left));top:52px;z-index:30;height:34px;padding:0 12px;border-radius:10px;border:2px solid rgba(255,255,255,.18);background:var(--panel-2);color:var(--ink);font:800 15px var(--body);cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.25)}
 
 /* Stage */
 #stage{position:relative;flex:1;min-height:0;display:grid;place-items:center}
@@ -186,6 +187,7 @@ body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);o
 <body>
 <div id="app">
   <button id="btnLang" hidden></button>
+  <button id="btnRot" hidden></button>
   <header class="hud">
     <div class="pls" id="hudP"></div>
     <div class="mid">
@@ -1395,10 +1397,26 @@ function buildHud(){
 }
 const btnPause=document.getElementById('btnPause'),btnLang=document.getElementById('btnLang');
 btnLang.addEventListener('click',()=>{if(state==='title')setLang(lang==='en'?'sr':'en');});
+/* ---------- Položaj ekrana: položeno, uspravno ili automatski (samo u Android aplikaciji) ---------- */
+const btnRot=document.getElementById('btnRot');
+const ROT={land:['📱','Položeno','Landscape'],port:['📱','Uspravno','Portrait'],auto:['📱','Automatski','Automatic']};
+function rotOK(){return !!(window.AndroidScreen&&window.AndroidScreen.set);}
+let rotCache=null;
+function rotMode(){if(rotCache)return rotCache;try{const m=window.AndroidScreen.get();rotCache=ROT[m]?m:'land';}catch(e){rotCache='land';}return rotCache;}
+function chooseRotation(){
+  const cur=rotMode();
+  showCard({kick:tr('Ekran','Screen'),title:tr('Kako držiš telefon?','How do you hold the phone?'),color:'#5b8def',
+    info:tr('Izbor se pamti. Automatski: ekran se okreće sa telefonom, osim kad je rotacija na telefonu zaključana.','Your choice is saved. Automatic: the screen turns with the phone, unless rotation is locked on the phone.'),
+    options:Object.keys(ROT).map(k=>({label:tr(ROT[k][1],ROT[k][2]),sub:k===cur?tr('✓ izabrano','✓ selected'):(k==='land'?tr('vidi se najviše nivoa','see the most of the level'):k==='port'?tr('jednom rukom','one hand'):tr('kao telefon','like the phone')),
+      color:k===cur?'#ffc62b':'#8a8fb0',sel:k===cur,fn:()=>{try{window.AndroidScreen.set(k);}catch(e){}rotCache=k;sfx('coin');showTitle();}})),
+    focus:Object.keys(ROT).indexOf(cur),btn:tr('Nazad','Back'),go:()=>showTitle()});
+}
+btnRot.addEventListener('click',()=>{if(state==='title')chooseRotation();});
 function updHud(){
   const showPause=!!players&&(state==='play'||state==='paused');
   if(btnPause.hidden===showPause)btnPause.hidden=!showPause;
   const showLang=titleCard&&!card.hidden&&!players;if(btnLang.hidden===showLang){btnLang.hidden=!showLang;document.body.classList.toggle('tt',showLang);}
+  {const sr=showLang&&rotOK();if(btnRot.hidden===sr)btnRot.hidden=!sr;if(sr){const m=rotMode(),t=ROT[m][0]+' '+cyr(tr(ROT[m][1],ROT[m][2]));if(btnRot.textContent!==t)btnRot.textContent=t;}}
   {const lt='🌐 '+(lang==='en'?'Српски':'English');if(btnLang.textContent!==lt){btnLang.textContent=lt;btnLang.setAttribute('aria-label',lang==='en'?'Српски језик':'English language');}}
   if(!players){if(hudKey==='none')return;hudKey='none';setShootBtn(false);buildHud();return;}
   if(hudEls.length!==players.length||hudKey==='none'||hudKey==='')buildHud();
@@ -2255,7 +2273,7 @@ function render(){
       const wt=cyr(tr('« Vetar! Drži se!','« Wind! Hold on!'));ctx.strokeText(wt,VW/2,H-24);ctx.fillStyle='#dff3ff';ctx.fillText(wt,VW/2,H-24);ctx.globalAlpha=1;}
   }
   // uspravan telefon: kratko predloži okretanje
-  if(state==='play'&&portrait&&lvl.t<260&&!finePtr&&innerWidth<600){
+  if(state==='play'&&portrait&&lvl.t<260&&!finePtr&&innerWidth<600&&!(rotOK()&&rotMode()==='port')){
     ctx.globalAlpha=Math.min(1,(260-lvl.t)/30);ctx.font='800 17px "Rubik",sans-serif';ctx.textAlign='center';const txt=cyr(tr('↻ Okreni telefon za veći prikaz','↻ Turn your phone for a bigger view'));const w=ctx.measureText(txt).width+26;
     ctx.fillStyle='rgba(19,24,51,.8)';rr(ctx,Math.round((VW-w)/2),H-58,w,34,12);ctx.fill();ctx.fillStyle='#ffe27a';ctx.fillText(txt,VW/2,H-35);ctx.globalAlpha=1;
   }

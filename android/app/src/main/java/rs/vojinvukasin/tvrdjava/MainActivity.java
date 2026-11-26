@@ -3,6 +3,8 @@ package rs.vojinvukasin.tvrdjava;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -108,6 +110,8 @@ public class MainActivity extends Activity {
         web.setWebChromeClient(new WebChromeClient());
         web.addJavascriptInterface(new AdsBridge(), "AndroidAds");
         web.addJavascriptInterface(new NetBridge(), "AndroidNet");
+        web.addJavascriptInterface(new ScreenBridge(), "AndroidScreen");
+        applyOrientation(getSharedPreferences("ekran", MODE_PRIVATE).getString("polozaj", "land"));
 
         // Igra gore, baner dole.
         LinearLayout root = new LinearLayout(this);
@@ -391,6 +395,29 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void stop() {
             ui.post(MainActivity.this::netStopAll);
+        }
+    }
+
+    // Položaj ekrana koji je izabran u igri: položeno, uspravno ili automatski.
+    private void applyOrientation(String mode) {
+        int o;
+        if ("port".equals(mode)) o = ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT;
+        else if ("auto".equals(mode)) o = ActivityInfo.SCREEN_ORIENTATION_FULL_USER;
+        else o = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE;
+        if (getRequestedOrientation() != o) setRequestedOrientation(o);
+    }
+
+    private class ScreenBridge {
+        @JavascriptInterface
+        public void set(String mode) {
+            final String m = ("port".equals(mode) || "auto".equals(mode)) ? mode : "land";
+            getSharedPreferences("ekran", MODE_PRIVATE).edit().putString("polozaj", m).apply();
+            runOnUiThread(() -> applyOrientation(m));
+        }
+
+        @JavascriptInterface
+        public String get() {
+            return getSharedPreferences("ekran", MODE_PRIVATE).getString("polozaj", "land");
         }
     }
 
