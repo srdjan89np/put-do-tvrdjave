@@ -7,25 +7,35 @@ Naziv aplikacije (najviše 30 znakova):
 Пут до Краљеве тврђаве
 
 Kratak opis (najviše 80 znakova):
-Мали витезови, 10 нивоа, мач, праћка и коњ! Игра за 1 до 4 играча.
+Мали витезови, змај и принцеза! 10 нивоа, 1 до 4 играча, и преко Блутута.
 
 Pun opis (najviše 4000 znakova):
 Мали витезови Војин, Вукашин, Сања и Срђан крећу на пут до Краљеве тврђаве!
 
-Пред њима је 10 нивоа: зелена ливада, кристална пећина, облаци, пустиња, ледена планина, ватрена тврђава, ноћна шума и олуја у облацима. Скупљај драго камење, отварај сандуке са благом и мачем обарај гоблине, јежеве и мале змајеве. Пази на шиљке, лаву, провалије и кружне тестере.
+Пред њима је 10 нивоа: зелена ливада, кристална пећина, облаци, пешчане дине, ледена планина, ватрена тврђава, ноћна шума и олуја у облацима. Скупљај драго камење, отварај сандуке са благом и мачем обарај гоблине, јежеве, шишмише, мале змајеве и корњаче са бодљама. Пази на шиљке, лаву, провалије, кружне тестере и ветар у олуји.
 
-ПОКЛОНИ
+АВАНТУРА
+• Велики змај чува крај 5. и 10. нивоа
+• Спаси принцезу, а на крају те принц пред краљем и краљицом проглашава правим витезом
+• Сруши напукао зид и пронађи тајну собу пуну блага
+• У сваком нивоу освоји од 1 до 3 звездице
+
+ПОКЛОНИ И КОСТИМИ
 • Праћка, па супер праћка са три златне звезде
-• Оклоп: један ударац не одузима живот
-• Коњ: брже трчање и виши скок
+• Оклоп, коњ, магнет за драгуље, невидљивост и дупли скок
+• Скупљај драгуље за гусарски шешир, штит са лавом, круну и златни плашт
+• Дневни поклон сваки пут кад се вратиш
 
-ИГРА ЗА ЦЕЛУ ПОРОДИЦУ
-• Један играч или до четири, један по један
-• Свако има 3 живота и контролну тачку на средини нивоа
+ЗА ЦЕЛУ ПОРОДИЦУ
+• Један играч или до четири, један по један на истом телефону
+• Игра преко Блутута: свако на свом телефону, без интернета (Android 13 и новији)
+• Четири тежине: Лако са штитом за најмлађе, Нормално, Тешко и Витешко
+• Игра се сама чува, па настављаш где си стао
+• Бираш како држиш телефон: аутоматски, положено или усправно
 • Игра памти 10 најбољих резултата
-• На крају те у тврђави чека краљ са ватрометом
+• На српском (ћирилица) и на енглеском језику
 
-Без куповине у игри и без налога. На дну екрана је рекламни банер прилагођен деци, без персонализованих реклама. Цела игра је на српском језику (ћирилица).
+Без куповине у игри и без налога. Рекламе су прилагођене деци и нису персонализоване: банер на дну екрана и, само ако сам изабереш, кратак видео за додатни живот или за 30 драгуља једном дневно.
 
 
 ENGLESKI (en-US) – prevod
@@ -34,12 +44,12 @@ App name:
 Road to the King's Castle
 
 Short description (80):
-Little knights, 10 levels, a dragon and a princess! 1–4 players, Bluetooth too.
+Little knights, a dragon and a princess! 10 levels, 1–4 players, Bluetooth too.
 
 Full description:
 Little knights Vojin, Vukašin, Sanja and Srđan set off for the King's Castle!
 
-Ten levels stand in their way: green meadows, a crystal cave, the clouds, the desert, an icy mountain, a fire fortress, a night forest and a storm in the clouds. Collect gems, open treasure chests and use your sword against goblins, hedgehogs and little dragons. Watch out for spikes, lava, pits and spinning saws.
+Ten levels stand in their way: green meadows, a crystal cave, the clouds, sand dunes, an icy mountain, a fire fortress, a night forest and a storm in the clouds. Collect gems, open treasure chests and use your sword against goblins, hedgehogs, bats, little dragons and spiked turtles. Watch out for spikes, lava, pits, spinning saws and the wind in the storm.
 
 ADVENTURE
 • A big dragon guards the end of levels 5 and 10
@@ -57,10 +67,12 @@ FOR THE WHOLE FAMILY
 • One player or up to four, taking turns on one phone
 • Bluetooth play: everyone on their own phone, no internet needed (Android 13+)
 • Four difficulty levels: Easy with a shield for the youngest, Normal, Hard and Knightly
+• Your game is saved, so you continue where you left off
+• Choose how you hold the phone: automatic, landscape or portrait
 • The game keeps the 10 best scores
 • Plays in English or Serbian
 
-No in-app purchases and no accounts. Child-safe ads only: a banner at the bottom of the screen and, if you choose it, one short video for an extra life. No personalized ads.
+No in-app purchases and no accounts. Child-safe, non-personalized ads only: a banner at the bottom of the screen and, only if you choose it, a short video for an extra life or for 30 gems once a day.
 
 Graphics (docs/play/en/): feature-graphic-en-1024x500.png, screenshot-en-1..8.jpg (1920x1080). Promo video: docs/promo-en.mp4.
 
